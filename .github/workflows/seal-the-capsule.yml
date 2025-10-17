@@ -90,7 +90,14 @@ jobs:
             exit 1
           fi
 
-      - name: 🔄 Checkout main branch
+      - name: � Save encrypted file temporarily
+        run: |
+          USERNAME="${{ steps.find-file.outputs.username }}"
+          # Move encrypted file to temp location
+          cp "sealed/${USERNAME}.txt.gpg" "/tmp/${USERNAME}.txt.gpg"
+          echo "Saved encrypted file to /tmp/${USERNAME}.txt.gpg"
+
+      - name: �🔄 Checkout main branch
         uses: actions/checkout@v4
         with:
           ref: main
@@ -108,10 +115,8 @@ jobs:
           # Create sealed directory in main branch
           mkdir -p sealed
           
-          # Copy the encrypted file from the previous checkout
-          # We need to retrieve it from the PR branch artifacts
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          git checkout origin/${{ github.event.pull_request.head.ref }} -- "sealed/${USERNAME}.txt.gpg"
+          # Copy encrypted file from temp location
+          cp "/tmp/${USERNAME}.txt.gpg" "$ENCRYPTED_FILE"
           
           # Add and commit
           git add "$ENCRYPTED_FILE"
