@@ -137,6 +137,7 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           USERNAME="${{ steps.find-file.outputs.username }}"
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           
           # Create success message
           cat > comment.md << 'EOF'
@@ -147,7 +148,7 @@ jobs:
           **What happened:**
           - ✅ Message encrypted with GPG
           - ✅ Encrypted file committed to main branch
-          - ✅ Original message kept private
+          - ✅ Original message destroyed (branch deleted)
           
           **Unveiling:** January 1, 2035
           
@@ -157,6 +158,10 @@ jobs:
           # Comment and close PR
           gh pr comment $PR_NUMBER --body-file comment.md
           gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed. This PR is now closed."
+          
+          # Delete the branch to destroy original message
+          echo "🗑️ Deleting branch '$BRANCH_NAME' to destroy original message..."
+          git push origin --delete "$BRANCH_NAME" || echo "⚠️ Branch already deleted or protected"
 
       - name: ✅ Sealing Complete
         run: |
