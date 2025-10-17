@@ -205,6 +205,8 @@ At **midnight on January 1, 2035**, GitHub will automatically:
 
 > Imagine reading what 2025-you wrote! How much will you change? 🤯
 
+📖 **[Click Here for Full Instructions: How to Read in 2035](./HOW-TO-READ-2035.md)** 📖
+
 ---
 
 ## ❓ Common Questions
@@ -270,6 +272,18 @@ Only your first message will be locked. This keeps it authentic and special!
 <summary><b>🗑️ Can I delete my message?</b></summary>
 
 Only before it gets locked (within 30 seconds). After that, it's part of history!
+
+</details>
+
+<details>
+<summary><b>📬 How do I read my message in 2035?</b></summary>
+
+**It's automatic!** On January 1, 2035:
+- ✅ All messages will be decrypted automatically
+- ✅ You'll receive GitHub notifications (if you starred/watched the repo)
+- ✅ Just visit the repository and open `decrypted-messages/[YourUsername].txt`
+
+📖 **[Read Full Guide: How to Access Your Message in 2035](./HOW-TO-READ-2035.md)**
 
 </details>
 
@@ -384,7 +398,37 @@ With hope,
 
 <br>
 
-## 🔧 Are You a Developer?
+## � How to Receive Your Message in 2035
+
+**Don't worry about remembering!** We've made it easy:
+
+### **🔔 Automatic Notifications**
+1. ⭐ **Star this repository** (click ⭐ at top)
+2. 👁️ **Watch → All Activity** (click 👁️ at top)
+3. ✅ You'll get **email notification** on January 1, 2035!
+
+### **📖 When 2035 Arrives:**
+1. Check your **GitHub notifications** or **email**
+2. Visit: `github.com/ThanhNguyxn/github-time-capsule`
+3. Open folder: `decrypted-messages/`
+4. Find your file: `[YourUsername].txt`
+5. **Read your message from 10 years ago!** 🎉
+
+<div align="center">
+
+### **[📖 Complete Guide: How to Read Your Message in 2035 →](./HOW-TO-READ-2035.md)**
+
+[![Read Guide](https://img.shields.io/badge/Read%20Full%20Guide-How%20to%20Access%20in%202035-orange?style=for-the-badge&logo=book)](./HOW-TO-READ-2035.md)
+
+*Includes: Step-by-step instructions, FAQs, troubleshooting, and multiple access methods*
+
+</div>
+
+---
+
+<br>
+
+## �🔧 Are You a Developer?
 
 Want to know how this works technically? Check out our detailed docs:
 
