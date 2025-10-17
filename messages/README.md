@@ -4,33 +4,76 @@ This directory holds message files from contributors before they are sealed.
 
 ## 🔒 Important Rules:
 
-### **1. File Naming (STRICT)**
-- **Format:** `messages/[YourGitHubUsername].txt`
-- **Example:** If your username is `john123`, file MUST be `messages/john123.txt`
-- **Case-sensitive:** Must match your GitHub username EXACTLY
+### **1. File Naming (AUTOMATIC - NO CHOICE)**
 
-### **2. One File Per User**
+⚠️ **YOU CANNOT CHOOSE YOUR FILENAME!**
+
+The filename is **AUTOMATICALLY** determined by your GitHub username:
+
+```
+Your GitHub username: john123
+Required filename: messages/john123.txt
+```
+
+**Rules:**
+- ✅ File MUST be named: `messages/[YourGitHubUsername].txt`
+- ✅ Must match your GitHub username EXACTLY (case-sensitive)
+- ❌ You CANNOT use a different name
+- ❌ You CANNOT choose a custom filename
+
+**Examples:**
+- GitHub user `@ThanhNguyxn` → MUST create `messages/ThanhNguyxn.txt`
+- GitHub user `@alice` → MUST create `messages/alice.txt`
+- GitHub user `@Bob_2025` → MUST create `messages/Bob_2025.txt`
+
+**Why automatic?**
+- Prevents impersonation (you can't pretend to be someone else)
+- Prevents duplicate names (GitHub usernames are globally unique)
+- Ensures one message per user
+- Links message to GitHub account for accountability
+
+### **2. Name Conflicts? IMPOSSIBLE!**
+
+**❓ "What if two people have the same name?"**
+
+**Answer: CANNOT HAPPEN!** GitHub usernames are unique worldwide.
+
+**Proof:**
+- ✅ GitHub has 100+ million users
+- ✅ Each username is unique (enforced by GitHub)
+- ✅ If `@john` exists, nobody else can register `@john`
+- ✅ Second person must use: `@john123`, `@john_dev`, `@johnsmith`, etc.
+
+**Your GitHub username IS your unique identifier!**
+
+Think of it like:
+- Email addresses: Only ONE person owns `john@gmail.com`
+- Phone numbers: Only ONE person has `+1-555-1234`
+- GitHub usernames: Only ONE person is `@john`
+
+### **3. One File Per User**
 - ✅ You can ONLY create/edit YOUR OWN file: `messages/[YourUsername].txt`
 - ❌ You CANNOT modify other users' files
 - ❌ You CANNOT create multiple files
+- ❌ You CANNOT choose a different filename
 
-### **3. Username Best Practices**
+### **4. Verification Process**
 
-⚠️ **To avoid conflicts, choose a UNIQUE GitHub username!**
+When you submit a PR, the workflow automatically:
 
-**Before creating your message:**
-1. Check if your username is unique on GitHub
-2. Avoid common names like: `john`, `admin`, `user`, `test`
-3. Use numbers or special characters: `john_2025`, `admin_real`, `user123`
+```yaml
+1. Get your GitHub username: $USERNAME
+2. Check filename matches: messages/$USERNAME.txt
+3. If NOT match → REJECT
+4. If match → Continue encryption
+```
 
-**Why?** If two people have the same GitHub username (impossible on GitHub, but if forks have different users):
-- Only ONE person can seal a message with that username
-- First person wins, second person gets blocked
-
-**Recommendation:**
-- Use your REAL GitHub username (automatically unique!)
-- Don't try to impersonate others
-- Check: https://github.com/[your-username] exists and is YOU
+**Example rejection:**
+```
+Your GitHub username: alice
+Your file: messages/bob.txt
+❌ ERROR: Filename must be messages/alice.txt
+```
 
 ## 📋 How to Create Your Message:
 
