@@ -133,30 +133,23 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           USERNAME="${{ steps.find-file.outputs.username }}"
           
-          # Create a closing comment
+          # Comment on PR with success message
           gh pr comment $PR_NUMBER --body "## 🔒 Message Sealed Successfully!
-
-Thank you, @${USERNAME}! Your message has been encrypted and sealed in the time capsule.
-
-**What just happened:**
-- ✅ Your message was encrypted using cryptographic algorithms
-- ✅ The encrypted file was committed to the main branch
-- ✅ Your original message remains private (only in this PR and your fork)
-- ✅ Your contribution is now part of history!
-
-**Your encrypted message:** \`sealed/${USERNAME}.txt.gpg\`
-
-**The Unveiling:** January 1, 2035
-
-Your words are now frozen in time, waiting to be revealed on the unlock date. Thank you for being part of this journey across time.
-
-See you in the future! 🕰️✨
-
----
-*This PR will now be closed automatically. The original message file was NOT merged to keep your message private until 2035.*"
+          
+          Thank you, @${USERNAME}! Your message has been encrypted and sealed.
+          
+          **What happened:**
+          - ✅ Message encrypted with GPG
+          - ✅ Encrypted file committed to main
+          - ✅ Original message kept private
+          
+          **Encrypted file:** \`sealed/${USERNAME}.txt.gpg\`
+          **Unveiling:** January 1, 2035
+          
+          See you in the future! 🕰️✨"
           
           # Close the PR without merging
-          gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed. Original message kept private."
+          gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed."
 
       - name: ✅ Sealing Complete
         run: |
