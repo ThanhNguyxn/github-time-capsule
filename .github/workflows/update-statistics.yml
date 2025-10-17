@@ -1,0 +1,93 @@
+name: 📊 Update Statistics
+
+on:
+  schedule:
+    # Runs every day at 00:00 UTC
+    - cron: '0 0 * * *'
+  
+  # Also run when a new message is sealed
+  push:
+    paths:
+      - 'sealed/*.gpg'
+  
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔢 Count sealed messages
+        id: count
+        run: |
+          # Count .gpg files in sealed/ folder (excluding .gitkeep)
+          MESSAGE_COUNT=$(find sealed -name "*.gpg" -type f | wc -l)
+          echo "MESSAGE_COUNT=$MESSAGE_COUNT" >> $GITHUB_OUTPUT
+          echo "✅ Found $MESSAGE_COUNT sealed messages"
+
+      - name: 📅 Calculate days until 2035
+        id: days
+        run: |
+          # Calculate days until January 1, 2035
+          TARGET_DATE="2035-01-01"
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          
+          # Calculate difference in days
+          DAYS_UNTIL=$(( ($(date -d "$TARGET_DATE" +%s) - $(date -d "$CURRENT_DATE" +%s)) / 86400 ))
+          
+          echo "DAYS_UNTIL=$DAYS_UNTIL" >> $GITHUB_OUTPUT
+          echo "✅ Days until 2035: $DAYS_UNTIL"
+
+      - name: ✍️ Update README with new statistics
+        run: |
+          MESSAGE_COUNT="${{ steps.count.outputs.MESSAGE_COUNT }}"
+          DAYS_UNTIL="${{ steps.days.outputs.DAYS_UNTIL }}"
+          
+          # Update Messages Sealed badge
+          sed -i "s/Messages-Coming%20Soon-blue/Messages-${MESSAGE_COUNT}-blue/g" README.md
+          
+          # Update Days Until 2035 badge
+          sed -i "s/Countdown-[0-9]*%20days-orange/Countdown-${DAYS_UNTIL}%20days-orange/g" README.md
+          
+          echo "✅ Updated README.md with new statistics"
+          echo "   - Messages Sealed: $MESSAGE_COUNT"
+          echo "   - Days Until 2035: $DAYS_UNTIL"
+
+      - name: 📊 Check if there are changes
+        id: verify
+        run: |
+          if git diff --quiet README.md; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No changes detected"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Changes detected"
+            git diff README.md
+          fi
+
+      - name: 💾 Commit and push changes
+        if: steps.verify.outputs.changed == 'true'
+        run: |
+          git config user.name "Statistics Bot"
+          git config user.email "bot@timecapsule.dev"
+          git add README.md
+          git commit -m "📊 Auto-update statistics: ${{ steps.count.outputs.MESSAGE_COUNT }} messages, ${{ steps.days.outputs.DAYS_UNTIL }} days until 2035"
+          git push origin main
+          echo "✅ Pushed changes to repository"
+
+      - name: 🎉 Summary
+        run: |
+          echo "### 📊 Statistics Update Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔒 Messages Sealed | ${{ steps.count.outputs.MESSAGE_COUNT }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏰ Days Until 2035 | ${{ steps.days.outputs.DAYS_UNTIL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📝 Changes Made | ${{ steps.verify.outputs.changed }} |" >> $GITHUB_STEP_SUMMARY

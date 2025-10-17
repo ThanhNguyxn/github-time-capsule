@@ -285,11 +285,13 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 
 | 📈 Metric | Count |
 |-----------|-------|
-| 🔒 **Messages Sealed** | ![Coming Soon](https://img.shields.io/badge/Messages-Coming%20Soon-blue?style=flat-square) |
+| 🔒 **Messages Sealed** | ![Messages Sealed](https://img.shields.io/badge/Messages-0-blue?style=flat-square) |
 | 👥 **Contributors** | [![Contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../graphs/contributors) |
 | ⭐ **Stars** | [![Stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../stargazers) |
 | 🔀 **Forks** | [![Forks](https://img.shields.io/github/forks/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../network/members) |
-| ⏰ **Days Until 2035** | ![Countdown](https://img.shields.io/badge/Countdown-3653%20days-orange?style=flat-square) |
+| ⏰ **Days Until 2035** | ![Days Until 2035](https://img.shields.io/badge/Countdown-3653%20days-orange?style=flat-square) |
+
+> 🤖 **Auto-updated daily** by GitHub Actions | Last update: Every day at 00:00 UTC
 
 </div>
 
