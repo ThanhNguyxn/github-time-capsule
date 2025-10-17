@@ -343,6 +343,8 @@ This pattern is **essential** for the workflow to function correctly.
 **Trigger:** Scheduled cron on January 1, 2035 at 00:00 UTC  
 **Duration:** Depends on number of messages (~1-5 minutes for 1000 messages)
 
+> 📖 **For End Users:** See [HOW-TO-READ-2035.md](./HOW-TO-READ-2035.md) for non-technical instructions on how to access your message in 2035.
+
 ```yaml
 name: 🎆 Auto-Unveiling 2035
 
