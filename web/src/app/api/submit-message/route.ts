@@ -4,7 +4,7 @@ import { Octokit } from '@octokit/rest';
 import { validation, securityHeaders } from '@/lib/validation';
 import { rateLimit } from '@/lib/rate-limit';
 import config from '@/lib/env';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
