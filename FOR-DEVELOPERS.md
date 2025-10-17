@@ -500,8 +500,8 @@ To everyone who participated back in 2025 - your messages are now part of histor
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule.git
-cd github-time-capsule-ho-c-dev-time-capsule
+git clone https://github.com/ThanhNguyxn/github-time-capsule.git
+cd github-time-capsule
 
 # 2. Install GPG (if not already installed)
 # macOS:
@@ -830,3 +830,4 @@ Also check: Repository Settings → Actions → General → Workflow permissions
 [Back to README](README.md) | [Report Issues](../../issues) | [Discussions](../../discussions)
 
 </div>
+
