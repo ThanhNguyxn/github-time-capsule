@@ -10,6 +10,11 @@
 
 **Write today. Read in 2035. No technical knowledge required.**
 
+### 🌐 Two Ways to Participate:
+
+**[🖥️ Use Web Interface](https://github.com/ThanhNguyxn/github-time-capsule/tree/main/web)** *(Easiest - No Git knowledge needed)*  
+**[⚙️ Use GitHub Directly](#-how-to-send-your-message-4-easy-steps)** *(Traditional method)*
+
 ---
 
 </div>
@@ -51,6 +56,42 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 **Takes 5 minutes. Lasts 10 years. Priceless in 2035.** ✨
 
 ---
+
+## 🌐 Option 1: Use Our Web Interface (Easiest!)
+
+### 🎨 **For Non-Technical Users**
+
+We've built a beautiful web interface so **anyone** can participate without knowing Git or GitHub!
+
+### ✨ Features:
+- 🔐 **One-Click Sign In** - Sign in with your GitHub account
+- ✍️ **Simple Form** - Just write and click submit
+- 👀 **Live Preview** - See your message before sealing
+- 🎨 **Beautiful UI** - Modern, easy-to-use interface
+- 🤖 **100% Automated** - We handle all the GitHub magic
+
+### 🚀 How to Use:
+
+1. **Visit the Web App** (Coming Soon - Under Development)
+2. **Sign in with GitHub** - One click, totally safe
+3. **Write your message** - Use the simple form
+4. **Click Submit** - Done! Your message is sealed
+
+> 💡 **Perfect for:** People who want the easiest way to participate without learning GitHub!
+
+### 📖 Web Interface Documentation:
+
+- **[Setup Guide](./web/README.md)** - For developers who want to run locally
+- **[OAuth Setup](./web/OAUTH-SETUP.md)** - GitHub OAuth configuration
+- **[Security](./web/SECURITY.md)** - How we protect your data
+
+---
+
+## ⚙️ Option 2: Use GitHub Directly (Traditional)
+
+### 👨‍💻 **For Technical Users**
+
+If you're comfortable with Git and GitHub, you can submit directly via Pull Request:
 
 ## 🚀 How to Send Your Message (4 Easy Steps)
 
