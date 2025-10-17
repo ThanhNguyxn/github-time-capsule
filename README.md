@@ -285,10 +285,11 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 
 | 📈 Metric | Count |
 |-----------|-------|
-| 🔒 **Messages Sealed** | ![Sealed Messages](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule/contents/sealed&label=&query=$.length&color=blue&style=flat-square) |
+| 🔒 **Messages Sealed** | ![Coming Soon](https://img.shields.io/badge/Messages-Coming%20Soon-blue?style=flat-square) |
 | 👥 **Contributors** | [![Contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../graphs/contributors) |
 | ⭐ **Stars** | [![Stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../stargazers) |
-| ⏰ **Days Until 2035** | ![Days](https://img.shields.io/badge/days-~3653-orange?style=flat-square) |
+| 🔀 **Forks** | [![Forks](https://img.shields.io/github/forks/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../network/members) |
+| ⏰ **Days Until 2035** | ![Countdown](https://img.shields.io/badge/Countdown-3653%20days-orange?style=flat-square) |
 
 </div>
 
