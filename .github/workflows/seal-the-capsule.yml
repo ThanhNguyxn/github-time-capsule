@@ -118,23 +118,35 @@ jobs:
             exit 1
           fi
 
-      - name: "Check for duplicate message"
+
+      - name: "Check for duplicate message and set sealed file name"
+        id: set-sealed-file
         run: |
           USERNAME="${{ steps.find-file.outputs.username }}"
-          SEALED_FILE="sealed/${USERNAME}.txt.gpg"
+          OWNER="ThanhNguyxn"
+          BASE_FILE="sealed/${USERNAME}.txt.gpg"
+          SEALED_FILE="$BASE_FILE"
           
-          # Check if user already has a sealed message
           git fetch origin main
-          if git ls-tree origin/main "$SEALED_FILE" | grep -q "$SEALED_FILE"; then
-            echo "❌ You already have a sealed message!"
-            echo "File: $SEALED_FILE"
-            echo ""
-            echo "Each user can only seal ONE message."
-            echo "Your message is already locked until 2035."
-            exit 1
+          if [ "$USERNAME" = "$OWNER" ]; then
+            # Owner is allowed unlimited messages, always use next available name
+            i=1
+            while git ls-tree origin/main "sealed/${USERNAME}*.txt.gpg" | grep -q "$SEALED_FILE"; do
+              i=$((i+1))
+              SEALED_FILE="sealed/${USERNAME} ($i).txt.gpg"
+            done
+            echo "Owner detected. Using file: $SEALED_FILE"
+          else
+            # For normal users, allow multiple messages with auto-incremented names
+            i=1
+            while git ls-tree origin/main "sealed/${USERNAME}*.txt.gpg" | grep -q "$SEALED_FILE"; do
+              i=$((i+1))
+              SEALED_FILE="sealed/${USERNAME} ($i).txt.gpg"
+            done
+            echo "Using file: $SEALED_FILE"
           fi
-          
-          echo "✅ No duplicate found - proceeding with sealing"
+          echo "sealed_file=$SEALED_FILE" >> $GITHUB_OUTPUT
+          echo "✅ Sealed file name set: $SEALED_FILE"
 
       - name: "Verify message content"
         run: |
