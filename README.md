@@ -12,7 +12,7 @@
 
 ### 🌐 Two Ways to Participate:
 
-**[🖥️ Use Web Interface](https://github.com/ThanhNguyxn/github-time-capsule/tree/main/web)** *(Easiest - No Git knowledge needed)*  
+**[🖥️ Use Web Interface](https://github-time-capsule.vercel.app/)** *(Easiest - No Git knowledge needed)*  
 **[⚙️ Use GitHub Directly](#-how-to-send-your-message-4-easy-steps)** *(Traditional method)*
 
 ---
