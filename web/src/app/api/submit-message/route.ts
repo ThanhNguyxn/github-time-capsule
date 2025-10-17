@@ -90,7 +90,6 @@ export async function POST(request: NextRequest) {
     const owner = config.github.repoOwner;
     const repo = config.github.repoName;
     const branchName = `add-message-${username}-${Date.now()}`;
-  const fileName = `messages/${username}.gpg`;
 
     // Step 1: Fork the repository (if not already forked)
     const userRepoOwner = username;
@@ -131,6 +130,34 @@ export async function POST(request: NextRequest) {
     });
 
     // Step 4: Create the encrypted message file
+    const userFolder = `messages/${username}`;
+
+    // Check if the user folder exists
+    let userFiles;
+    try {
+      const { data: userFolderContents } = await octokit.repos.getContent({
+        owner: userRepoOwner,
+        repo,
+        path: userFolder,
+      });
+      userFiles = userFolderContents.map(file => file.name);
+    } catch (error: any) {
+      if (error.status === 404) {
+        // Folder doesn't exist, create it
+        userFiles = [];
+      } else {
+        throw error;
+      }
+    }
+
+    // Determine the next file name
+    const existingNumbers = userFiles
+      .map(file => parseInt(file.replace(username, '').replace('.gpg', ''), 10))
+      .filter(num => !isNaN(num));
+
+    const nextFileNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    const fileName = `${userFolder}/${username}${nextFileNumber}.gpg`;
+
     await octokit.repos.createOrUpdateFileContents({
       owner: userRepoOwner,
       repo,
