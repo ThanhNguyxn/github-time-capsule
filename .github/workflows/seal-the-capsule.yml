@@ -1,0 +1,170 @@
+name: Seal the Capsule
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  seal-message:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: 🔍 Find new message file
+        id: find-file
+        run: |
+          # Get the username from the PR author
+          USERNAME="${{ github.event.pull_request.user.login }}"
+          MESSAGE_FILE="messages/${USERNAME}.txt"
+          
+          echo "Looking for message file: $MESSAGE_FILE"
+          
+          if [ -f "$MESSAGE_FILE" ]; then
+            echo "✅ Found message file: $MESSAGE_FILE"
+            echo "message_file=$MESSAGE_FILE" >> $GITHUB_OUTPUT
+            echo "username=$USERNAME" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Expected message file not found: $MESSAGE_FILE"
+            echo "Please create a file named messages/${USERNAME}.txt with your message."
+            exit 1
+          fi
+
+      - name: 📝 Verify message content
+        run: |
+          MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
+          
+          if [ ! -s "$MESSAGE_FILE" ]; then
+            echo "❌ Message file is empty. Please add your message to the future!"
+            exit 1
+          fi
+          
+          FILE_SIZE=$(wc -c < "$MESSAGE_FILE")
+          echo "📊 Message size: $FILE_SIZE bytes"
+          
+          if [ $FILE_SIZE -gt 1048576 ]; then
+            echo "❌ Message is too large (>1MB). Please keep your message concise."
+            exit 1
+          fi
+
+      - name: 🔐 Setup GPG
+        run: |
+          # Import the public key from secrets
+          echo "${{ secrets.GPG_PUBLIC_KEY }}" | gpg --import
+          
+          # Verify the key was imported
+          gpg --list-keys
+
+      - name: 🔒 Encrypt the message
+        id: encrypt
+        run: |
+          MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
+          USERNAME="${{ steps.find-file.outputs.username }}"
+          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
+          
+          # Create sealed directory if it doesn't exist
+          mkdir -p sealed
+          
+          # Encrypt the message file
+          # Using the key ID or email from the imported public key
+          # Add --trust-model always to avoid interactive prompts
+          gpg --trust-model always --encrypt --recipient time-capsule-2035 \
+              --output "$ENCRYPTED_FILE" "$MESSAGE_FILE"
+          
+          if [ -f "$ENCRYPTED_FILE" ]; then
+            echo "✅ Message encrypted successfully!"
+            echo "encrypted_file=$ENCRYPTED_FILE" >> $GITHUB_OUTPUT
+            
+            ENCRYPTED_SIZE=$(wc -c < "$ENCRYPTED_FILE")
+            echo "🔒 Encrypted size: $ENCRYPTED_SIZE bytes"
+          else
+            echo "❌ Encryption failed!"
+            exit 1
+          fi
+
+      - name: 🔄 Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Commit encrypted message to main
+        run: |
+          # Configure git
+          git config user.name "Time Capsule Bot"
+          git config user.email "time-capsule-bot@users.noreply.github.com"
+          
+          USERNAME="${{ steps.find-file.outputs.username }}"
+          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
+          
+          # Create sealed directory in main branch
+          mkdir -p sealed
+          
+          # Copy the encrypted file from the previous checkout
+          # We need to retrieve it from the PR branch artifacts
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout origin/${{ github.event.pull_request.head.ref }} -- "sealed/${USERNAME}.txt.gpg"
+          
+          # Add and commit
+          git add "$ENCRYPTED_FILE"
+          git commit -m "🔒 Seal message from user @${{ github.actor }}"
+          git push origin main
+
+      - name: 📊 Update statistics
+        run: |
+          # Count total sealed messages
+          TOTAL_MESSAGES=$(ls -1 sealed/*.gpg 2>/dev/null | wc -l)
+          echo "📈 Total messages sealed: $TOTAL_MESSAGES"
+          
+          # This could be extended to update a stats file or README badge
+
+      - name: 🎉 Close Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          USERNAME="${{ steps.find-file.outputs.username }}"
+          
+          # Create a closing comment
+          gh pr comment $PR_NUMBER --body "## 🔒 Message Sealed Successfully!
+
+Thank you, @${USERNAME}! Your message has been encrypted and sealed in the time capsule.
+
+**What just happened:**
+- ✅ Your message was encrypted using cryptographic algorithms
+- ✅ The encrypted file was committed to the main branch
+- ✅ Your original message remains private (only in this PR and your fork)
+- ✅ Your contribution is now part of history!
+
+**Your encrypted message:** \`sealed/${USERNAME}.txt.gpg\`
+
+**The Unveiling:** January 1, 2035
+
+Your words are now frozen in time, waiting to be revealed on the unlock date. Thank you for being part of this journey across time.
+
+See you in the future! 🕰️✨
+
+---
+*This PR will now be closed automatically. The original message file was NOT merged to keep your message private until 2035.*"
+          
+          # Close the PR without merging
+          gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed. Original message kept private."
+
+      - name: ✅ Sealing Complete
+        run: |
+          echo "╔════════════════════════════════════════╗"
+          echo "║   🔒 TIME CAPSULE SEALED 🔒           ║"
+          echo "╚════════════════════════════════════════╝"
+          echo ""
+          echo "Message from @${{ steps.find-file.outputs.username }} has been sealed."
+          echo "Unlock Date: January 1, 2035"
+          echo ""
+          echo "The message sleeps, waiting for its time..."

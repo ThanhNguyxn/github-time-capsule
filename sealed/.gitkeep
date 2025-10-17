@@ -1,0 +1,5 @@
+# Keep this directory for sealed/encrypted messages
+# Messages will be added here automatically by GitHub Actions
+
+*.gpg
+!.gitkeep

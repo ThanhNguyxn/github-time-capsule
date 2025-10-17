@@ -1,0 +1,51 @@
+# Time Capsule .gitignore
+
+# Node modules (if any automation is added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if scripts are added)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Operating System files
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# GPG/Encryption keys (NEVER commit private keys!)
+*.key
+*.pem
+*.p12
+private-key.asc
+secret-key.asc
+
+# Keep sealed directory but ignore temp files
+sealed/*.tmp
+
+# Local testing files
+test-messages/
+local-test/
+
+# GitHub Actions cache
+.github/.DS_Store
