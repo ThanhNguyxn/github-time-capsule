@@ -1,4 +1,4 @@
-name: Seal the Capsule
+﻿name: Seal the Capsule
 
 on:
   pull_request:
@@ -26,10 +26,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: �️ Security: Validate PR changes
+      - name: "Security: Validate PR changes"
         id: validate
         run: |
-          echo "�🔍 Checking what files were changed..."
+          echo "Checking what files were changed..."
           
           # Get list of changed files
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
@@ -118,7 +118,7 @@ jobs:
             exit 1
           fi
 
-      - name: � Check for duplicate message
+      - name: "Check for duplicate message"
         run: |
           USERNAME="${{ steps.find-file.outputs.username }}"
           SEALED_FILE="sealed/${USERNAME}.txt.gpg"
@@ -136,7 +136,7 @@ jobs:
           
           echo "✅ No duplicate found - proceeding with sealing"
 
-      - name: �📝 Verify message content
+      - name: "Verify message content"
         run: |
           MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
           
@@ -199,14 +199,14 @@ jobs:
             exit 1
           fi
 
-      - name: � Save encrypted file temporarily
+      - name: "Save encrypted file temporarily"
         run: |
           USERNAME="${{ steps.find-file.outputs.username }}"
           # Move encrypted file to temp location
           cp "sealed/${USERNAME}.txt.gpg" "/tmp/${USERNAME}.txt.gpg"
           echo "Saved encrypted file to /tmp/${USERNAME}.txt.gpg"
 
-      - name: �🔄 Checkout main branch
+      - name: "Checkout main branch"
         uses: actions/checkout@v4
         with:
           ref: main
@@ -316,3 +316,4 @@ jobs:
           gh pr comment $PR_NUMBER --body-file error-comment.md || echo "Failed to comment"
           
           echo "❌ Workflow failed - PR left open for manual review"
+
