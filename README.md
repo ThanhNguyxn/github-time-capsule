@@ -275,16 +275,20 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 
 ---
 
-## 📊 Statistics
+## 📊 Project Statistics
 
 <div align="center">
 
-| 📈 | Count |
-|----|-------|
-| 🔒 **Messages Sealed** | *Coming Soon* |
-| 👥 **People Joined** | *Coming Soon* |
-| 🌍 **Countries** | *Coming Soon* |
-| ⏰ **Days Until 2035** | *~3,653 days since this repository was created* |
+[![GitHub Issues](https://img.shields.io/github/issues/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../commits/main)
+
+| 📈 Metric | Count |
+|-----------|-------|
+| 🔒 **Messages Sealed** | ![Sealed Messages](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule/contents/sealed&label=&query=$.length&color=blue&style=flat-square) |
+| 👥 **Contributors** | [![Contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../graphs/contributors) |
+| ⭐ **Stars** | [![Stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../stargazers) |
+| ⏰ **Days Until 2035** | ![Days](https://img.shields.io/badge/days-~3653-orange?style=flat-square) |
 
 </div>
 
@@ -352,19 +356,26 @@ With hope,
 
 <div align="center">
 
-## 🚀 Ready?
+## 🚀 Ready to Send Your Message?
 
-### **[👉 Click Here to Start!](../../fork)**
+### **[👉 Click Here to Start (Fork This Repo)](../../fork)**
+
+[![Get Started](https://img.shields.io/badge/Get%20Started-Fork%20Now!-success?style=for-the-badge&logo=github)](../../fork)
 
 <br>
 
-**The future is waiting for your message!** 🎉
+**The future is waiting for your message!** 🎉  
+**It only takes 5 minutes!** ⏱️
 
 <br>
 
 ---
 
-⭐ **Star this project!** We'll remind you to come back in 2035!
+### **[⭐ Star This Project!](../../stargazers)**
+
+[![Star this repository](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=social)](../../stargazers)
+
+*We'll remind you to come back on January 1, 2035!*
 
 ---
 
@@ -374,9 +385,15 @@ With hope,
 
 Want to know how this works technically? Check out our detailed docs:
 
+<div align="center">
+
 ### **[📖 For Developers & Technical Details →](FOR-DEVELOPERS.md)**
 
-Learn about:
+[![Developer Docs](https://img.shields.io/badge/Read-Developer%20Docs-blue?style=for-the-badge&logo=github)](FOR-DEVELOPERS.md)
+
+</div>
+
+**Learn about:**
 - 🏗️ System architecture
 - 🔐 Encryption implementation (AES-256-GCM, RSA-4096)
 - ⚙️ GitHub Actions workflows
@@ -390,25 +407,51 @@ Learn about:
 
 </div>
 
-## 💙 Support
+## 💙 Support This Project
 
-⭐ Star this repository  
-🔄 Share with friends  
-🐛 [Report bugs](../../issues)  
-💬 [Join discussions](../../discussions)
+<div align="center">
+
+| Action | Link |
+|--------|------|
+| ⭐ **Star** | [Star this repository](../../stargazers) |
+| 🔄 **Share** | [Share on Twitter](https://twitter.com/intent/tweet?text=I%20just%20sent%20a%20message%20to%20my%20future%20self%20using%20GitHub%20Time%20Capsule!%20It%20will%20be%20unlocked%20on%20January%201%2C%202035!%20%F0%9F%95%B0%EF%B8%8F&url=https://github.com/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule) |
+| 🐛 **Report Bugs** | [Open an issue](../../issues/new) |
+| 💬 **Discussions** | [Join the discussion](../../discussions) |
+| 🤝 **Contribute** | [Read contributing guide](FOR-DEVELOPERS.md#contributing) |
+
+[![GitHub stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=social)](../../stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=social)](../../network/members)
+[![GitHub watchers](https://img.shields.io/github/watchers/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=social)](../../watchers)
+
+</div>
 
 ---
 
 ## 📜 License
 
-MIT License - Free and open source!
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+**MIT License** - Free and open source forever!
+
+[Read the full license](LICENSE)
+
+</div>
 
 ---
 
 <div align="center">
 
-**🕰️ See you on January 1, 2035!** 🎉
+## 🕰️ See You on January 1, 2035! 🎉
 
-*Made with ❤️ by the community*
+**Made with ❤️ by the community**
+
+[![Made with Love](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red?style=flat-square)](../../)
+[![GitHub contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule-ho-c-dev-time-capsule?style=flat-square)](../../graphs/contributors)
+
+---
+
+*Remember to come back! Set a reminder for January 1, 2035!* 🗓️
 
 </div>
