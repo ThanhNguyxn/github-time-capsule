@@ -4,6 +4,11 @@
 
 ---
 
+> 💡 **Không rành công nghệ? Mới tham gia?**  
+> 👉 **[BẮT ĐẦU TẠI ĐÂY - Hướng Dẫn Đơn Giản](START-HERE.md)** - Chỉ 4 bước dễ dàng!
+
+---
+
 ## 🎯 Dự Án Là Gì?
 
 **GitHub Time Capsule** là một time capsule (hộp thời gian) kỹ thuật số dành cho cộng đồng developers toàn cầu. Bạn có thể viết một thông điệp cho chính bạn trong 10 năm sau, hoặc cho cộng đồng developer của năm 2035.

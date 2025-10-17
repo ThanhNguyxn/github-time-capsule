@@ -3,6 +3,11 @@
 
 ---
 
+> 💡 **New here? Not a tech expert?**  
+> 👉 **[START HERE - Simple Guide](START-HERE.md)** - Just 4 easy steps!
+
+---
+
 ### What would you say to the developer you'll be in 10 years?
 
 ---
