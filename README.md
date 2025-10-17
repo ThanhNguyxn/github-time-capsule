@@ -345,7 +345,7 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 
 | 📈 Metric | Count |
 |-----------|-------|
-| 🔒 **Messages Sealed** | ![Messages Sealed](https://img.shields.io/badge/Messages-1-blue?style=flat-square) |
+| 🔒 **Messages Sealed** | ![Messages Sealed](https://img.shields.io/badge/Messages-0-blue?style=flat-square) |
 | 👥 **Contributors** | [![Contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule?style=flat-square)](../../graphs/contributors) |
 | ⭐ **Stars** | [![Stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule?style=flat-square)](../../stargazers) |
 | 🔀 **Forks** | [![Forks](https://img.shields.io/github/forks/ThanhNguyxn/github-time-capsule?style=flat-square)](../../network/members) |
