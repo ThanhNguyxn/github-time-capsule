@@ -124,27 +124,27 @@ jobs:
         run: |
           USERNAME="${{ steps.find-file.outputs.username }}"
           OWNER="ThanhNguyxn"
-          BASE_FILE="sealed/${USERNAME}.txt.gpg"
+          USER_DIR="sealed/${USERNAME}"
+          BASE_FILE="$USER_DIR/${USERNAME}.txt.gpg"
           SEALED_FILE="$BASE_FILE"
           
           git fetch origin main
-          if [ "$USERNAME" = "$OWNER" ]; then
-            # Owner is allowed unlimited messages, always use next available name
-            i=1
-            while git ls-tree origin/main "sealed/${USERNAME}*.txt.gpg" | grep -q "$SEALED_FILE"; do
+          mkdir -p "$USER_DIR"
+          i=0
+          while true; do
+            if [ $i -eq 0 ]; then
+              CANDIDATE_FILE="$USER_DIR/${USERNAME}.txt.gpg"
+            else
+              CANDIDATE_FILE="$USER_DIR/${USERNAME} ($i).txt.gpg"
+            fi
+            if git ls-tree origin/main "$CANDIDATE_FILE" | grep -q "$CANDIDATE_FILE"; then
               i=$((i+1))
-              SEALED_FILE="sealed/${USERNAME} ($i).txt.gpg"
-            done
-            echo "Owner detected. Using file: $SEALED_FILE"
-          else
-            # For normal users, allow multiple messages with auto-incremented names
-            i=1
-            while git ls-tree origin/main "sealed/${USERNAME}*.txt.gpg" | grep -q "$SEALED_FILE"; do
-              i=$((i+1))
-              SEALED_FILE="sealed/${USERNAME} ($i).txt.gpg"
-            done
-            echo "Using file: $SEALED_FILE"
-          fi
+            else
+              SEALED_FILE="$CANDIDATE_FILE"
+              break
+            fi
+          done
+          echo "Using file: $SEALED_FILE"
           echo "sealed_file=$SEALED_FILE" >> $GITHUB_OUTPUT
           echo "✅ Sealed file name set: $SEALED_FILE"
 
@@ -188,11 +188,9 @@ jobs:
         id: encrypt
         run: |
           MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
-          USERNAME="${{ steps.find-file.outputs.username }}"
-          # Use the sealed file name set in the duplicate check step
           ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
-          
-          mkdir -p sealed
+          USER_DIR="$(dirname "$ENCRYPTED_FILE")"
+          mkdir -p "$USER_DIR"
           # Encrypt in batch mode, no tty, no prompt
           gpg --batch --yes --trust-model always --encrypt --recipient time-capsule-2035 \
               --output "$ENCRYPTED_FILE" "$MESSAGE_FILE"
@@ -209,10 +207,10 @@ jobs:
 
       - name: "Save encrypted file temporarily"
         run: |
-          USERNAME="${{ steps.find-file.outputs.username }}"
-          # Move encrypted file to temp location
-          cp "sealed/${USERNAME}.txt.gpg" "/tmp/${USERNAME}.txt.gpg"
-          echo "Saved encrypted file to /tmp/${USERNAME}.txt.gpg"
+          ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
+          BASENAME=$(basename "$ENCRYPTED_FILE")
+          cp "$ENCRYPTED_FILE" "/tmp/$BASENAME"
+          echo "Saved encrypted file to /tmp/$BASENAME"
 
       - name: "Checkout main branch"
         uses: actions/checkout@v4
@@ -225,17 +223,11 @@ jobs:
           # Configure git
           git config user.name "Time Capsule Bot"
           git config user.email "time-capsule-bot@users.noreply.github.com"
-          
-          USERNAME="${{ steps.find-file.outputs.username }}"
-          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
-          
-          # Create sealed directory in main branch
-          mkdir -p sealed
-          
-          # Copy encrypted file from temp location
-          cp "/tmp/${USERNAME}.txt.gpg" "$ENCRYPTED_FILE"
-          
-          # Add and commit
+          ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
+          USER_DIR="$(dirname "$ENCRYPTED_FILE")"
+          BASENAME=$(basename "$ENCRYPTED_FILE")
+          mkdir -p "$USER_DIR"
+          cp "/tmp/$BASENAME" "$ENCRYPTED_FILE"
           git add "$ENCRYPTED_FILE"
           git commit -m "🔒 Seal message from user @${{ github.actor }}"
           git push origin main
