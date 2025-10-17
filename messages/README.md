@@ -2,6 +2,6 @@
 # Files here are NOT committed to main - only encrypted versions are stored
 
 # Place your message here as: <your-username>.txt
-# Example: johndoe.txt
+# Example: thanhnguyxn.txt
 
 # See EXAMPLE-MESSAGE.txt for inspiration
