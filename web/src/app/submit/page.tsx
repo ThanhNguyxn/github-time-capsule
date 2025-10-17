@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Link from 'next/link';
 import { validation } from '@/lib/validation';
 import AuthButton from '@/components/AuthButton';
 
@@ -64,9 +65,9 @@ export default function SubmitPage() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-900">
         <header className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <a href="/" className="text-white text-2xl font-bold">
+            <Link href="/" className="text-white text-2xl font-bold">
               🕰️ Time Capsule
-            </a>
+            </Link>
             <AuthButton />
           </div>
         </header>
@@ -93,9 +94,9 @@ export default function SubmitPage() {
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
-          <a href="/" className="text-white text-2xl font-bold">
+          <Link href="/" className="text-white text-2xl font-bold">
             🕰️ Time Capsule
-          </a>
+          </Link>
           <AuthButton />
         </div>
       </header>

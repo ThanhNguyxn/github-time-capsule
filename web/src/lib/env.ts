@@ -4,22 +4,16 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       // GitHub OAuth
-      GITHUB_CLIENT_ID: string;
-      GITHUB_CLIENT_SECRET: string;
-      
-      // NextAuth
-      NEXTAUTH_URL: string;
-      NEXTAUTH_SECRET: string;
+      GITHUB_CLIENT_ID?: string;
+      GITHUB_CLIENT_SECRET?: string;
       
       // GitHub Repository
-      GITHUB_REPO_OWNER: string;
-      GITHUB_REPO_NAME: string;
+      GITHUB_REPO_OWNER?: string;
+      GITHUB_REPO_NAME?: string;
       
       // Rate Limiting
-      RATE_LIMIT_MAX_REQUESTS: string;
-      RATE_LIMIT_WINDOW_MS: string;
-      
-
+      RATE_LIMIT_MAX_REQUESTS?: string;
+      RATE_LIMIT_WINDOW_MS?: string;
     }
   }
 }
@@ -45,14 +39,14 @@ export function validateEnv() {
 // Export safely typed config
 export const config = {
   github: {
-    clientId: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    repoOwner: process.env.GITHUB_REPO_OWNER,
-    repoName: process.env.GITHUB_REPO_NAME,
+    clientId: process.env.GITHUB_CLIENT_ID || '',
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+    repoOwner: process.env.GITHUB_REPO_OWNER || 'ThanhNguyxn',
+    repoName: process.env.GITHUB_REPO_NAME || 'github-time-capsule',
   },
   nextAuth: {
-    url: process.env.NEXTAUTH_URL,
-    secret: process.env.NEXTAUTH_SECRET,
+    url: process.env.NEXTAUTH_URL || '',
+    secret: process.env.NEXTAUTH_SECRET || '',
   },
   rateLimit: {
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '5'),

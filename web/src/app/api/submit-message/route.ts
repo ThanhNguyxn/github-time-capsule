@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     const fileName = `messages/${username}.txt`;
 
     // Step 1: Fork the repository (if not already forked)
-    let userRepoOwner = username;
+    const userRepoOwner = username;
     try {
       await octokit.repos.get({
         owner: username,

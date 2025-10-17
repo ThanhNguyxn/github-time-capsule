@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Link from 'next/link';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -86,12 +87,12 @@ function SuccessContent() {
 
         {/* Actions */}
         <div className="flex gap-4 justify-center flex-wrap">
-          <a
+          <Link
             href="/"
             className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             🏠 Back to Home
-          </a>
+          </Link>
           <a
             href="https://github.com/ThanhNguyxn/github-time-capsule"
             target="_blank"
