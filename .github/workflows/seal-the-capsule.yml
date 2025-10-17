@@ -3,10 +3,17 @@ name: Seal the Capsule
 on:
   pull_request:
     types: [opened]
+    paths:
+      - 'messages/**'  # Only trigger when messages/ folder changes
 
 permissions:
   contents: write
   pull-requests: write
+
+# Prevent concurrent runs for the same PR
+concurrency:
+  group: seal-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
 
 jobs:
   seal-message:
@@ -18,6 +25,38 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
+      - name: �️ Security: Validate PR changes
+        id: validate
+        run: |
+          echo "�🔍 Checking what files were changed..."
+          
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Count changes outside messages/
+          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
+          
+          if [ ! -z "$DANGEROUS_CHANGES" ]; then
+            echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
+            echo "Blocked files:"
+            echo "$DANGEROUS_CHANGES"
+            echo ""
+            echo "⚠️ Only files in messages/ folder are allowed."
+            exit 1
+          fi
+          
+          # Check for multiple message files (spam detection)
+          MESSAGE_COUNT=$(echo "$CHANGED_FILES" | grep "^messages/.*\.txt$" | wc -l)
+          if [ "$MESSAGE_COUNT" -gt 1 ]; then
+            echo "❌ SECURITY: PR contains multiple message files!"
+            echo "Only 1 message per user is allowed."
+            exit 1
+          fi
+          
+          echo "✅ Security check passed"
 
       - name: 🔍 Find new message file
         id: find-file
@@ -35,10 +74,33 @@ jobs:
           else
             echo "❌ Expected message file not found: $MESSAGE_FILE"
             echo "Please create a file named messages/${USERNAME}.txt with your message."
+            echo ""
+            echo "📝 Instructions:"
+            echo "1. File must be in messages/ folder"
+            echo "2. File must be named: ${USERNAME}.txt (your GitHub username)"
+            echo "3. File must contain your message text"
             exit 1
           fi
 
-      - name: 📝 Verify message content
+      - name: � Check for duplicate message
+        run: |
+          USERNAME="${{ steps.find-file.outputs.username }}"
+          SEALED_FILE="sealed/${USERNAME}.txt.gpg"
+          
+          # Check if user already has a sealed message
+          git fetch origin main
+          if git ls-tree origin/main "$SEALED_FILE" | grep -q "$SEALED_FILE"; then
+            echo "❌ You already have a sealed message!"
+            echo "File: $SEALED_FILE"
+            echo ""
+            echo "Each user can only seal ONE message."
+            echo "Your message is already locked until 2035."
+            exit 1
+          fi
+          
+          echo "✅ No duplicate found - proceeding with sealing"
+
+      - name: �📝 Verify message content
         run: |
           MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
           
@@ -54,6 +116,17 @@ jobs:
             echo "❌ Message is too large (>1MB). Please keep your message concise."
             exit 1
           fi
+          
+          # Check for suspicious content (basic spam detection)
+          if grep -qi "http://" "$MESSAGE_FILE" || grep -qi "https://" "$MESSAGE_FILE"; then
+            URL_COUNT=$(grep -oi "http" "$MESSAGE_FILE" | wc -l)
+            if [ "$URL_COUNT" -gt 3 ]; then
+              echo "⚠️ WARNING: Message contains many URLs ($URL_COUNT)"
+              echo "This might be spam. Review carefully."
+            fi
+          fi
+          
+          echo "✅ Message content validated"
 
       - name: 🔐 Setup GPG
         run: |
@@ -173,3 +246,37 @@ jobs:
           echo "Unlock Date: January 1, 2035"
           echo ""
           echo "The message sleeps, waiting for its time..."
+
+      - name: ❌ Handle Failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          USERNAME="${{ github.event.pull_request.user.login }}"
+          
+          # Create error message
+          cat > error-comment.md << 'EOF'
+          ## ❌ Sealing Failed
+          
+          Unfortunately, we couldn't seal your message. This PR will remain open for review.
+          
+          **Common issues:**
+          - ❌ File name doesn't match your username
+          - ❌ File is empty or too large (>1MB)
+          - ❌ You already have a sealed message
+          - ❌ PR modifies files outside `messages/` folder
+          - ❌ PR contains multiple message files
+          
+          **How to fix:**
+          1. Check the workflow logs above for specific error
+          2. Fix the issue in your branch
+          3. Push changes (will trigger new check)
+          
+          **Need help?** Open an issue or check [FOR-DEVELOPERS.md](../FOR-DEVELOPERS.md)
+          EOF
+          
+          # Comment on PR
+          gh pr comment $PR_NUMBER --body-file error-comment.md || echo "Failed to comment"
+          
+          echo "❌ Workflow failed - PR left open for manual review"

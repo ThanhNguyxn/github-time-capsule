@@ -1,0 +1,16 @@
+# Code Owners - Protect critical files from modification
+
+# Only repo owner can modify these files
+/.github/workflows/* @ThanhNguyxn
+/sealed/* @ThanhNguyxn
+/README.md @ThanhNguyxn
+/FOR-DEVELOPERS.md @ThanhNguyxn
+/HOW-TO-READ-2035.md @ThanhNguyxn
+/.gitignore @ThanhNguyxn
+/CODEOWNERS @ThanhNguyxn
+
+# Anyone can add messages (but workflow validates)
+/messages/* 
+
+# LICENSE can be viewed by anyone
+/LICENSE
