@@ -1,0 +1,57 @@
+Gửi đến Thanh năm 2035,
+
+Hôm nay là ngày 17 tháng 10 năm 2025. Mình đang ngồi code với Copilot, tạo ra một time capsule trên GitHub.
+
+10 năm là một khoảng thời gian dài. Mình tự hỏi:
+- Bạn có còn nhớ khoảnh khắc này không?
+- Bạn đã đạt được những mục tiêu nào?
+- Cuộc sống của bạn đã thay đổi như thế nào?
+- Công nghệ năm 2035 có giống như mình tưởng tượng không?
+
+Những điều mình muốn nói với bạn:
+
+🎯 **Về công việc:**
+- Hy vọng bạn đã trở thành developer giỏi
+- Đừng ngừng học hỏi công nghệ mới
+- Remember: Code is poetry, not just logic
+
+💭 **Về cuộc sống:**
+- Hãy chăm sóc sức khỏe nhiều hơn
+- Dành thời gian cho gia đình và bạn bè
+- Đừng quên những giấc mơ ban đầu
+
+🔮 **Dự đoán cho 2035:**
+- AI sẽ thông minh hơn rất nhiều (có lẽ GPT-10?)
+- Coding sẽ đơn giản hơn nhưng phức tạp hơn
+- GitHub vẫn tồn tại và phát triển mạnh
+- VR/AR sẽ là mainstream
+- Có thể có xe tự lái ở Việt Nam?
+
+❓ **Những câu hỏi cho bạn năm 2035:**
+- ChatGPT có còn tồn tại không? Hay đã có gì thay thế?
+- Bạn còn nhớ khoảnh khắc tạo time capsule này không?
+- Dự đoán nào của mình đã thành sự thật?
+- Bạn có hối hận điều gì trong 10 năm qua không?
+- Bạn có hạnh phúc không?
+
+📝 **Ghi chú từ 2025:**
+- Tôi đang học: GitHub Actions, GPG encryption, automation
+- Tôi đang dùng: VS Code, Copilot, PowerShell
+- Tôi đang mơ: Trở thành full-stack developer
+- Tôi đang hy vọng: Tạo được projects ý nghĩa
+
+🎁 **Lời nhắn cuối:**
+Dù bạn có thành công hay gặp khó khăn, hãy nhớ rằng bạn năm 2025 đã rất cố gắng.
+Mỗi dòng code, mỗi bug fix, mỗi project đều là bước đệm cho tương lai.
+
+Mình tin vào bạn. Mình tin vào future you.
+
+Keep coding. Keep dreaming. Keep being awesome! 🚀
+
+---
+
+P.S: Nếu GitHub Time Capsule này vẫn còn hoạt động sau 10 năm, thì thật là tuyệt vời!
+Cảm ơn past me đã tin tưởng vào automation và encryption! 🔒✨
+
+With love and hope,
+Thanh - October 17, 2025
