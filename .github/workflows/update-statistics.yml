@@ -50,11 +50,13 @@ jobs:
           MESSAGE_COUNT="${{ steps.count.outputs.MESSAGE_COUNT }}"
           DAYS_UNTIL="${{ steps.days.outputs.DAYS_UNTIL }}"
           
-          # Update Messages Sealed badge
+          # Update Messages Sealed badge (handle both URL-encoded and plain formats)
           sed -i "s/Messages-Coming%20Soon-blue/Messages-${MESSAGE_COUNT}-blue/g" README.md
+          sed -i "s/Messages-[0-9]*-blue/Messages-${MESSAGE_COUNT}-blue/g" README.md
           
-          # Update Days Until 2035 badge
+          # Update Days Until 2035 badge (handle both URL-encoded and plain formats)
           sed -i "s/Countdown-[0-9]*%20days-orange/Countdown-${DAYS_UNTIL}%20days-orange/g" README.md
+          sed -i "s/Countdown-[0-9]*-orange/Countdown-${DAYS_UNTIL}-orange/g" README.md
           
           echo "✅ Updated README.md with new statistics"
           echo "   - Messages Sealed: $MESSAGE_COUNT"
