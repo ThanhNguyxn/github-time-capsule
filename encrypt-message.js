@@ -1,5 +1,11 @@
-// Public GPG key for client-side encryption (replace with your actual public key)
-export const PUBLIC_GPG_KEY = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+// Node.js script to encrypt a message using OpenPGP and output a .gpg file
+// Usage: node encrypt-message.js "Your message here" output.gpg
+
+const fs = require('fs');
+const openpgp = require('openpgp');
+
+// Paste your public key here
+const PUBLIC_KEY = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: OpenPGP.js v5.0.0
 Comment: https://openpgpjs.org
 
@@ -53,3 +59,22 @@ ac4coLmiCut56o9RdH/uLFpJnTrBm2ZtlPMUAD/VCIA9YpGXlMF2PyhMH5wLBIMP
 OZHFHtEjo5yDEMKXG5SfYpWKgS22Dt7dkPCbr5GYKlJZyyw2q08=
 =fQTQ
 -----END PGP PUBLIC KEY BLOCK-----`;
+
+async function encryptAndSave(message, outputFile) {
+  const publicKey = await openpgp.readKey({ armoredKey: PUBLIC_KEY });
+  const encrypted = await openpgp.encrypt({
+    message: await openpgp.createMessage({ text: message }),
+    encryptionKeys: publicKey,
+    config: { preferredHashAlgorithm: openpgp.enums.hash.sha256 },
+  });
+  fs.writeFileSync(outputFile, encrypted, 'utf8');
+  console.log(`Encrypted message saved to ${outputFile}`);
+}
+
+const [,, msg, out] = process.argv;
+if (!msg || !out) {
+  console.error('Usage: node encrypt-message.js "Your message" output.gpg');
+  process.exit(1);
+}
+
+encryptAndSave(msg, out);
