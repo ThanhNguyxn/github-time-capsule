@@ -189,21 +189,17 @@ jobs:
         run: |
           MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
           USERNAME="${{ steps.find-file.outputs.username }}"
-          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
+          # Use the sealed file name set in the duplicate check step
+          ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
           
-          # Create sealed directory if it doesn't exist
           mkdir -p sealed
-          
-          # Encrypt the message file
-          # Using the key ID or email from the imported public key
-          # Add --trust-model always to avoid interactive prompts
-          gpg --trust-model always --encrypt --recipient time-capsule-2035 \
+          # Encrypt in batch mode, no tty, no prompt
+          gpg --batch --yes --trust-model always --encrypt --recipient time-capsule-2035 \
               --output "$ENCRYPTED_FILE" "$MESSAGE_FILE"
           
           if [ -f "$ENCRYPTED_FILE" ]; then
             echo "✅ Message encrypted successfully!"
             echo "encrypted_file=$ENCRYPTED_FILE" >> $GITHUB_OUTPUT
-            
             ENCRYPTED_SIZE=$(wc -c < "$ENCRYPTED_FILE")
             echo "🔒 Encrypted size: $ENCRYPTED_SIZE bytes"
           else
@@ -295,6 +291,7 @@ jobs:
           echo ""
           echo "The message sleeps, waiting for its time..."
 
+
       - name: ❌ Handle Failure
         if: failure()
         env:
@@ -307,7 +304,7 @@ jobs:
           cat > error-comment.md << 'EOF'
           ## ❌ Sealing Failed
           
-          Unfortunately, we couldn't seal your message. This PR will remain open for review.
+          Unfortunately, we couldn't seal your message. This PR is now closed.
           
           **Common issues:**
           - ❌ File name doesn't match your username
@@ -319,13 +316,14 @@ jobs:
           **How to fix:**
           1. Check the workflow logs above for specific error
           2. Fix the issue in your branch
-          3. Push changes (will trigger new check)
+          3. Open a new pull request after correcting the problem
           
           **Need help?** Open an issue or check [FOR-DEVELOPERS.md](../FOR-DEVELOPERS.md)
           EOF
           
           # Comment on PR
           gh pr comment $PR_NUMBER --body-file error-comment.md || echo "Failed to comment"
+          gh pr close $PR_NUMBER --comment "❌ Sealing failed. This PR is now closed."
           
-          echo "❌ Workflow failed - PR left open for manual review"
+          echo "❌ Workflow failed - PR closed with error message"
 
