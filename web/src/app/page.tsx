@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CountdownTimer from "@/components/CountdownTimer";
 import AuthButton from "@/components/AuthButton";
+import Statistics from "@/components/Statistics";
 
 export default function Home() {
   return (
@@ -63,6 +64,14 @@ export default function Home() {
           {/* Countdown Timer */}
           <div className="pt-16">
             <CountdownTimer />
+          </div>
+
+          {/* Statistics */}
+          <div className="pt-16">
+            <h2 className="text-3xl font-bold text-white text-center mb-8">
+              📊 Live Statistics
+            </h2>
+            <Statistics />
           </div>
 
           {/* How it works */}
