@@ -102,6 +102,25 @@ gpg --armor --export ABCD1234EFGH5678 > public-key.asc
 5. Value: Copy the entire contents of `public-key.asc` (including `-----BEGIN PGP PUBLIC KEY BLOCK-----` and `-----END PGP PUBLIC KEY BLOCK-----`)
 6. Click **Add secret**
 
+### Step 4b: Add Private Key to GitHub Secrets (For Auto-Unveiling)
+
+**⚠️ CRITICAL: This enables automatic unveiling on January 1, 2035!**
+
+1. In the same **Secrets** section
+2. Click **New repository secret**
+3. Name: `GPG_PRIVATE_KEY`
+4. Value: Copy the entire contents of `private-key.asc` (the private key you exported)
+5. Click **Add secret**
+
+### Step 4c: Add Passphrase to GitHub Secrets
+
+1. Click **New repository secret** again
+2. Name: `GPG_PASSPHRASE`
+3. Value: Enter your GPG key passphrase (the one you created during key generation)
+4. Click **Add secret**
+
+**Security Note**: While storing the private key in GitHub Secrets is necessary for automatic unveiling, also maintain offline backups as documented below. This provides redundancy and allows manual unveiling if needed.
+
 ---
 
 ### Step 5: Secure the Private Key

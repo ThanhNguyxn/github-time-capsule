@@ -1,0 +1,428 @@
+name: The Unveiling - Auto Decrypt on Jan 1, 2035
+
+on:
+  schedule:
+    # Runs at 00:00 UTC on January 1, 2035
+    - cron: '0 0 1 1 2035'
+  
+  # Manual trigger as backup
+  workflow_dispatch:
+    inputs:
+      force_unveil:
+        description: 'Force unveiling (use only on or after Jan 1, 2035)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  unveil-the-capsule:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🎆 The Time Has Come
+        run: |
+          echo "╔════════════════════════════════════════════════════════════════╗"
+          echo "║                                                                ║"
+          echo "║          🕰️  THE GITHUB TIME CAPSULE UNVEILING 🕰️              ║"
+          echo "║                                                                ║"
+          echo "║                  January 1, 2035                               ║"
+          echo "║                                                                ║"
+          echo "║              The future has arrived...                         ║"
+          echo "║                                                                ║"
+          echo "╚════════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "🎉 After 10 years of waiting, the time capsule is opening!"
+
+      - name: ✅ Verify Date
+        run: |
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          UNVEIL_DATE="2035-01-01"
+          
+          echo "Current date: $CURRENT_DATE"
+          echo "Unveil date: $UNVEIL_DATE"
+          
+          if [[ "$CURRENT_DATE" < "$UNVEIL_DATE" ]] && [[ "${{ github.event.inputs.force_unveil }}" != "true" ]]; then
+            echo "❌ It's not time yet! The capsule opens on January 1, 2035."
+            echo "Current date: $CURRENT_DATE"
+            exit 1
+          fi
+          
+          echo "✅ The time has come! Proceeding with unveiling..."
+
+      - name: 🔍 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔐 Setup GPG
+        run: |
+          echo "Installing GPG..."
+          sudo apt-get update
+          sudo apt-get install -y gnupg
+
+      - name: 🔓 Import Private Key
+        run: |
+          echo "Importing the private key from secrets..."
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          
+          # List imported keys
+          gpg --list-secret-keys
+
+      - name: 📊 Count Sealed Messages
+        id: count
+        run: |
+          SEALED_COUNT=$(ls -1 sealed/*.gpg 2>/dev/null | wc -l)
+          echo "sealed_count=$SEALED_COUNT" >> $GITHUB_OUTPUT
+          echo "📦 Found $SEALED_COUNT sealed messages"
+
+      - name: 🔓 Decrypt All Messages
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "🔓 Beginning decryption of all messages..."
+          echo ""
+          
+          # Create output directory
+          mkdir -p decrypted-messages
+          
+          SUCCESS_COUNT=0
+          FAIL_COUNT=0
+          
+          # Decrypt each file
+          for encrypted_file in sealed/*.gpg; do
+            if [ ! -f "$encrypted_file" ]; then
+              continue
+            fi
+            
+            filename=$(basename "$encrypted_file" .gpg)
+            output_file="decrypted-messages/${filename}.txt"
+            
+            echo "🔓 Decrypting: $filename"
+            
+            # Decrypt with passphrase
+            if echo "$GPG_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
+                --decrypt --output "$output_file" "$encrypted_file" 2>/dev/null; then
+              echo "   ✅ Success"
+              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            else
+              echo "   ❌ Failed"
+              FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+          done
+          
+          echo ""
+          echo "═══════════════════════════════════════════"
+          echo "✅ Successfully decrypted: $SUCCESS_COUNT"
+          echo "❌ Failed: $FAIL_COUNT"
+          echo "═══════════════════════════════════════════"
+          
+          # Save counts for later steps
+          echo "success_count=$SUCCESS_COUNT" >> $GITHUB_ENV
+          echo "fail_count=$FAIL_COUNT" >> $GITHUB_ENV
+
+      - name: 📝 Create Index
+        run: |
+          INDEX_FILE="decrypted-messages/INDEX.md"
+          
+          cat > "$INDEX_FILE" << 'EOF'
+# 🕰️ GitHub Time Capsule - Decrypted Messages
+
+**The Unveiling: January 1, 2035**
+
+After 10 years of waiting, the time capsule has been opened.
+
+---
+
+## 📊 Statistics
+
+- **Total Messages Sealed:** ${{ env.success_count }}
+- **Sealing Period:** October 2025 - December 2034
+- **Contributors:** Developers from around the world
+- **Unveiling Date:** January 1, 2035, 00:00 UTC
+
+---
+
+## 💌 Messages from the Past
+
+These are the voices of developers from 2025, speaking to us across time.
+Each message is a window into who they were and what they believed.
+
+EOF
+          
+          # List all decrypted messages
+          echo "" >> "$INDEX_FILE"
+          echo "### All Messages:" >> "$INDEX_FILE"
+          echo "" >> "$INDEX_FILE"
+          
+          for file in decrypted-messages/*.txt; do
+            if [ -f "$file" ]; then
+              username=$(basename "$file" .txt)
+              echo "- [\`@$username\`](./$username.txt)" >> "$INDEX_FILE"
+            fi
+          done
+          
+          echo "" >> "$INDEX_FILE"
+          echo "---" >> "$INDEX_FILE"
+          echo "" >> "$INDEX_FILE"
+          echo "**Thank you to every developer who contributed their voice to this time capsule.**" >> "$INDEX_FILE"
+          echo "" >> "$INDEX_FILE"
+          echo "*Messages are listed alphabetically by username.*" >> "$INDEX_FILE"
+
+      - name: 🔑 Publish Decryption Key
+        run: |
+          # Export the private key
+          gpg --armor --export-secret-keys time-capsule-2035 > DECRYPTION-KEY.asc
+          
+          # Create instructions
+          cat > DECRYPTION-INSTRUCTIONS.md << 'EOF'
+# 🔓 Decryption Instructions
+
+The time capsule has been opened! Here's how you can decrypt messages yourself.
+
+## 📥 Download Private Key
+
+The private key is now public: [`DECRYPTION-KEY.asc`](./DECRYPTION-KEY.asc)
+
+## 🔐 Passphrase
+
+```
+${{ secrets.GPG_PASSPHRASE }}
+```
+
+## 🛠️ How to Decrypt
+
+### Option 1: Use Our Scripts
+
+**Linux/macOS:**
+```bash
+./scripts/decrypt-capsule.sh
+```
+
+**Windows:**
+```powershell
+./scripts/decrypt-capsule.ps1
+```
+
+### Option 2: Manual Decryption
+
+```bash
+# Import the key
+gpg --import DECRYPTION-KEY.asc
+
+# Decrypt a message
+gpg --decrypt sealed/username.txt.gpg > username.txt
+```
+
+## 📖 View Decrypted Messages
+
+All messages have been decrypted and are available in the [`decrypted-messages/`](./decrypted-messages/) directory.
+
+Browse the [Index](./decrypted-messages/INDEX.md) to see all messages.
+
+---
+
+**The secret is revealed. The messages are free.** 🕊️
+EOF
+
+      - name: 📝 Update README
+        run: |
+          # Create unveiling announcement for README
+          cat > UNVEILING-ANNOUNCEMENT.md << 'EOF'
+# 🎆 THE UNVEILING HAS HAPPENED! 🎆
+
+## The Time Capsule is Open!
+
+**Date:** January 1, 2035
+
+After 10 years of waiting, **${{ env.success_count }} messages** from developers in 2025 have been revealed!
+
+### 📖 Read the Messages
+
+- **[View All Decrypted Messages](./decrypted-messages/INDEX.md)**
+- **[Decryption Key](./DECRYPTION-KEY.asc)**
+- **[Decryption Instructions](./DECRYPTION-INSTRUCTIONS.md)**
+
+### 🔑 The Secret
+
+The private key and passphrase are now public. Anyone can verify and decrypt the messages.
+
+**Passphrase:** `${{ secrets.GPG_PASSPHRASE }}`
+
+### 🎉 Statistics
+
+- **Messages Decrypted:** ${{ env.success_count }}
+- **Contributors:** Developers from around the world
+- **Years Sealed:** 10 years (2025-2035)
+- **Total Messages:** Browse the [Index](./decrypted-messages/INDEX.md)
+
+---
+
+**Thank you to everyone who participated in this journey across time!** ❤️
+
+EOF
+          
+          # Prepend to README
+          cat UNVEILING-ANNOUNCEMENT.md README.md > README-new.md
+          mv README-new.md README.md
+
+      - name: 📦 Commit Decrypted Messages
+        run: |
+          git config user.name "Time Capsule Bot"
+          git config user.email "time-capsule-bot@users.noreply.github.com"
+          
+          git add decrypted-messages/
+          git add DECRYPTION-KEY.asc
+          git add DECRYPTION-INSTRUCTIONS.md
+          git add README.md
+          
+          git commit -m "🎆 THE UNVEILING - January 1, 2035
+
+          The time capsule has been opened!
+          
+          - Decrypted ${{ env.success_count }} messages
+          - Published private key and passphrase
+          - Updated README with unveiling announcement
+          
+          The 10-year wait is over. Welcome to the future! 🕰️✨"
+          
+          git push origin main
+
+      - name: 🎉 Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create release notes
+          cat > release-notes.md << 'EOF'
+# 🕰️ The GitHub Time Capsule - THE UNVEILING
+
+**January 1, 2035**
+
+After 10 years of anticipation, the GitHub Time Capsule has been opened!
+
+## 📊 What's Inside
+
+- **${{ env.success_count }} Messages** from developers around the world
+- Messages sealed between October 2025 and December 2034
+- Voices from the past speaking to the present
+
+## 🔓 Access the Messages
+
+All messages have been decrypted and are now publicly available:
+
+- **[View All Messages](../decrypted-messages/INDEX.md)**
+- **[Download Decryption Key](../DECRYPTION-KEY.asc)**
+- **[Decryption Instructions](../DECRYPTION-INSTRUCTIONS.md)**
+
+## 🔑 Decryption Information
+
+**Private Key:** Available in `DECRYPTION-KEY.asc`  
+**Passphrase:** `${{ secrets.GPG_PASSPHRASE }}`
+
+Anyone can now verify and decrypt the messages independently.
+
+## 🎉 Highlights
+
+Messages include:
+- Predictions about technology in 2035
+- Personal reflections and goals
+- Code snippets from 2025
+- Wisdom and advice for the future
+- Dreams and aspirations
+
+## 📖 How to Read
+
+1. Browse the [Index](../decrypted-messages/INDEX.md)
+2. Read individual messages in the `decrypted-messages/` directory
+3. Use the decryption scripts to verify authenticity
+
+## 💬 Join the Conversation
+
+- Share your favorite messages
+- Compare predictions with reality
+- Reflect on how far we've come
+- Discuss what we learned
+
+## 🙏 Thank You
+
+To every developer who contributed their voice to this time capsule:
+
+**Your words have traveled through time. Your message has been heard.** ❤️
+
+---
+
+*This release marks the culmination of a 10-year journey.*  
+*Thank you for being part of history.* 🕰️✨
+EOF
+          
+          # Create the release
+          gh release create "unveiling-2035" \
+            --title "🎆 The Unveiling - January 1, 2035" \
+            --notes-file release-notes.md \
+            DECRYPTION-KEY.asc \
+            DECRYPTION-INSTRUCTIONS.md
+
+      - name: 📢 Create Announcement Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "🎆 THE TIME CAPSULE HAS BEEN OPENED! 🎆" \
+            --body "## 🕰️ The Unveiling - January 1, 2035
+
+          **The wait is over!**
+
+          After 10 years, **${{ env.success_count }} messages** from the past have been revealed!
+
+          ### 📖 Read the Messages
+          
+          - [View All Decrypted Messages](./decrypted-messages/INDEX.md)
+          - [Decryption Key & Instructions](./DECRYPTION-INSTRUCTIONS.md)
+          - [Release Notes](../../releases/tag/unveiling-2035)
+
+          ### 🎉 What Now?
+
+          1. **Read the messages** - Explore what developers in 2025 were thinking
+          2. **Compare predictions** - How accurate were the forecasts?
+          3. **Share your favorites** - Comment below with interesting finds
+          4. **Reflect** - How has technology and our community evolved?
+
+          ### 💬 Discussion
+
+          What message surprised you the most? What predictions came true? What dreams were realized?
+
+          Share your thoughts below! 👇
+
+          ---
+
+          **Thank you to everyone who participated in this incredible journey across time!** ❤️
+
+          *The time capsule is now a historical archive, preserved forever.* 🕰️✨" \
+            --label "announcement,unveiling"
+
+      - name: ✅ Unveiling Complete
+        run: |
+          echo ""
+          echo "╔════════════════════════════════════════════════════════════════╗"
+          echo "║                                                                ║"
+          echo "║                  🎉 UNVEILING COMPLETE! 🎉                     ║"
+          echo "║                                                                ║"
+          echo "║          The Time Capsule Has Been Opened                      ║"
+          echo "║                                                                ║"
+          echo "║              ${{ env.success_count }} messages revealed                              ║"
+          echo "║                                                                ║"
+          echo "║         Welcome to the future we hoped for! 🕰️                ║"
+          echo "║                                                                ║"
+          echo "╚════════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "✅ Messages decrypted and published"
+          echo "✅ Private key released"
+          echo "✅ GitHub Release created"
+          echo "✅ Announcement issue created"
+          echo "✅ README updated"
+          echo ""
+          echo "The 10-year journey is complete. Thank you to everyone who participated! ❤️"

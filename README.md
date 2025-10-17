@@ -76,15 +76,17 @@ That's it. You've just spoken to the future.
 
 ---
 
-## 🔐 The Sealing Process
+## 🔐 The Sealing Process (Automatic)
 
-Here's where the magic happens. Once you submit your Pull Request, the following will occur automatically:
+Here's where the magic happens. Once you submit your Pull Request, the following will occur **automatically**:
 
 1. **🤖 GitHub Actions Awakens** - Our automated system springs to life
 2. **🔒 Encryption** - Your message is encrypted using strong cryptographic algorithms
 3. **📦 Sealing** - The encrypted file is committed to the main branch
 4. **🗑️ Original Removal** - Your original, readable message is **not** merged—it remains only in your PR
 5. **✅ Closure** - The Pull Request is automatically closed with a confirmation message
+
+**No human intervention needed!** Everything happens automatically within seconds.
 
 ### Your Privacy is Protected
 
@@ -102,11 +104,24 @@ Until January 1, 2035, your message is a mystery—even to you, once it's sealed
 
 **January 1, 2035** will mark a historic moment in this repository's life.
 
-On that day:
+### 🤖 Fully Automated Process
 
-- 🔓 **The Decryption Key** will be published in this README
-- 📂 **A Decryption Tool** will be provided to unlock all messages
-- 🌟 **Every Message** will be revealed simultaneously
+On **January 1, 2035 at 00:00 UTC**, a GitHub Action will **automatically**:
+
+- 🔓 **Decrypt all messages** using the private key stored in GitHub Secrets
+- 📂 **Publish decrypted messages** to the `decrypted-messages/` directory
+- 🔑 **Release the private key and passphrase** publicly
+- 📝 **Update this README** with unveiling announcement
+- 🎉 **Create a GitHub Release** with all decrypted messages
+- 📢 **Post an announcement issue** to notify the community
+
+**You don't need to do anything!** The unveiling will happen automatically.
+
+### What Will Be Revealed:
+
+- 🌟 **Every Message** will be decrypted simultaneously
+- 🔑 **The Private Key** will be published for verification
+- 📊 **Statistics** about all contributions
 - 🎉 **The Community** will gather to read, reflect, and remember
 
 Imagine that moment: Thousands of messages from 2025, frozen in time, suddenly coming to life. Predictions made before they could be proven right or wrong. Dreams documented before they could come true or evolve. A snapshot of an entire community, preserved in code and words.
