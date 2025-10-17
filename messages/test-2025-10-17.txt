@@ -1,0 +1,26 @@
+---
+author: ThanhNguyxn
+date: 2025-10-17
+message_type: test
+---
+
+# 🧪 TEST MESSAGE - Automation Check
+
+Xin chào tương lai! 👋
+
+Đây là message TEST để kiểm tra xem automation có hoạt động không.
+
+Nếu bạn đọc được dòng này vào năm 2035, có nghĩa là:
+✅ GitHub Actions đã tự động encrypt message này
+✅ Automation đã HOẠT ĐỘNG THÀNH CÔNG!
+✅ Time Capsule đã được seal an toàn
+
+## Test Details:
+- Date Created: October 17, 2025
+- Purpose: Verify 100% automation workflow
+- Expected: Auto-encrypt + auto-close PR
+- Unveil Date: January 1, 2035
+
+---
+
+🚀 From 2025 with love!
