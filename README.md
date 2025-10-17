@@ -86,9 +86,14 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 ```
 Username: john → File name: john.txt
 Username: sarah_123 → File name: sarah_123.txt
+Username: ThanhNguyxn → File name: ThanhNguyxn.txt
 ```
 
-> ⚠️ **Important:** Use your **exact** GitHub username (case-sensitive)!
+> ⚠️ **CRITICAL:** Filename MUST match your GitHub username EXACTLY (case-sensitive)!
+> 
+> 🔒 The workflow will **automatically verify** this. If it doesn't match, your PR will be rejected with instructions.
+> 
+> 💡 **Why?** This prevents name conflicts (GitHub usernames are globally unique) and protects your file from others!
 
 ---
 
