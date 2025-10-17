@@ -60,7 +60,11 @@ export default function SubmitPage() {
     );
   }
 
+  // Redirect to home if not authenticated
   if (!session) {
+    if (typeof window !== 'undefined') {
+      router.push('/');
+    }
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-900">
         <header className="container mx-auto px-4 py-6">
@@ -76,7 +80,7 @@ export default function SubmitPage() {
             Sign In Required
           </h1>
           <p className="text-purple-200 text-xl mb-8">
-            Please sign in with GitHub to submit your message
+            Please sign in with GitHub to submit your message. Redirecting...
           </p>
           <AuthButton />
         </main>
