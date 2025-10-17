@@ -1,0 +1,21 @@
+---
+author: ThanhNguyxn
+date: 2025-10-17
+---
+
+# Message to the Future 🚀
+
+Hello from October 17, 2025!
+
+This is a test message to verify that the Time Capsule automation works perfectly.
+
+If you're reading this on January 1, 2035, it means:
+✅ The GitHub Actions workflow succeeded
+✅ GPG encryption worked flawlessly
+✅ The automation was 100% successful
+
+See you in 10 years! 🕰️✨
+
+---
+From the past with hope,
+ThanhNguyxn
