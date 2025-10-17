@@ -6,6 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { validation } from '@/lib/validation';
 import AuthButton from '@/components/AuthButton';
+import { encryptMessage } from '@/lib/encrypt';
 
 export default function SubmitPage() {
   const { data: session, status } = useSession();
@@ -29,12 +30,16 @@ export default function SubmitPage() {
     setIsSubmitting(true);
 
     try {
+      // Encrypt message client-side
+      const encrypted = await encryptMessage(message);
+      const encryptedBase64 = btoa(String.fromCharCode(...encrypted));
+
       const response = await fetch('/api/submit-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ encrypted: encryptedBase64 }),
       });
 
       const data = await response.json();

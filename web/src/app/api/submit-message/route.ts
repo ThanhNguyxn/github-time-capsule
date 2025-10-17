@@ -46,13 +46,10 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { message } = body;
-
-    // Validate message
-    const messageValidation = validation.validateMessage(message);
-    if (!messageValidation.valid) {
+    const { encrypted } = body;
+    if (!encrypted || typeof encrypted !== 'string') {
       return NextResponse.json(
-        { error: messageValidation.error },
+        { error: 'Missing encrypted message' },
         { status: 400, headers: securityHeaders }
       );
     }
@@ -74,8 +71,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Sanitize message
-    const sanitizedMessage = validation.sanitizeMessage(message);
+    // Decode encrypted message from base64
+    let encryptedBuffer: Buffer;
+    try {
+      encryptedBuffer = Buffer.from(encrypted, 'base64');
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid encrypted message format' },
+        { status: 400, headers: securityHeaders }
+      );
+    }
 
     // Initialize Octokit with user's access token
     const octokit = new Octokit({
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
     const owner = config.github.repoOwner;
     const repo = config.github.repoName;
     const branchName = `add-message-${username}-${Date.now()}`;
-    const fileName = `messages/${username}.txt`;
+  const fileName = `messages/${username}.gpg`;
 
     // Step 1: Fork the repository (if not already forked)
     const userRepoOwner = username;
@@ -125,13 +130,14 @@ export async function POST(request: NextRequest) {
       sha: mainSha,
     });
 
-    // Step 4: Create the message file
+    // Step 4: Create the encrypted message file
     await octokit.repos.createOrUpdateFileContents({
       owner: userRepoOwner,
       repo,
       path: fileName,
-      message: `Add message from ${username}`,
-      content: Buffer.from(sanitizedMessage).toString('base64'),
+      message: `Add encrypted message from ${username}`,
+      content: encrypted,
+      encoding: 'base64',
       branch: branchName,
     });
 
