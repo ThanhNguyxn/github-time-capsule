@@ -54,37 +54,51 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 
 ## 🚀 How to Send Your Message (4 Easy Steps)
 
-### Step 1: Click "Fork"
-
-At the top-right of this page, click the **"Fork"** button.
+### Step 1️⃣: Click "Fork"
 
 <div align="center">
 
-**👆 Look for this button at the top-right! 👆**
+### **[👉 Click Here to Fork This Repository](../../fork)**
+
+[![Fork Button](https://img.shields.io/badge/Fork-This%20Repository-blue?style=for-the-badge&logo=github)](../../fork)
+
+**Or click the "Fork" button at the top-right of this page ↗️**
 
 </div>
 
-> This makes your own copy. It's free and takes 2 seconds!
+> 💡 This creates your own copy. It's **free** and takes **2 seconds**!
 
 ---
 
-### Step 2: Create Your Message File
+### Step 2️⃣: Create Your Message File
 
-1. In **your copy** (the one you just made), click on the **`messages`** folder
-2. Click **"Add file"** → **"Create new file"**
-3. Name it: **`your-username.txt`**
+<div align="center">
 
-**Examples:**
-- Username `john` → File name: `john.txt`
-- Username `sarah_123` → File name: `sarah_123.txt`
+**In your forked repository:**
 
-> ⚠️ **Important:** Use your exact GitHub username!
+</div>
+
+1. 📁 Click on the **`messages`** folder
+2. ➕ Click **"Add file"** → **"Create new file"**
+3. ✏️ Name it: **`your-username.txt`**
+
+**📝 Examples:**
+```
+Username: john → File name: john.txt
+Username: sarah_123 → File name: sarah_123.txt
+```
+
+> ⚠️ **Important:** Use your **exact** GitHub username (case-sensitive)!
 
 ---
 
-### Step 3: Write Your Message
+### Step 3️⃣: Write Your Message
 
-Write whatever you want to tell yourself (or the world) in 2035!
+<div align="center">
+
+**✍️ Write whatever you want to tell yourself (or the world) in 2035!**
+
+</div>
 
 <details>
 <summary><b>💡 Need ideas? Click here!</b></summary>
@@ -124,7 +138,7 @@ Write whatever you want to tell yourself (or the world) in 2035!
 ```
 Dear Future Me,
 
-It's October 2025. I'm 25, learning to code, and hoping to be a developer someday.
+It's October 2025. I'm 18, learning to code, and hoping to be a developer someday.
 
 I wonder what you're doing now? Did you achieve your dreams? Are you happy?
 
@@ -138,20 +152,22 @@ Past You ❤️
 
 ---
 
-### Step 4: Submit It (Create Pull Request)
+### Step 4️⃣: Submit It (Create Pull Request)
 
-1. Scroll down and click **"Commit changes"** (the green button)
-2. Go back to **this original page** (the main project)
-3. Click **"Pull requests"** at the top
-4. Click **"New pull request"**
-5. Click **"compare across forks"**
-6. Select **your fork** (your copy) on the right
-7. Click **"Create pull request"**
-8. Click **"Create pull request"** again
+1. ✅ Scroll down and click **"Commit changes"** (the green button)
+2. 🔙 Go back to **[this original page](../../)** (the main project)
+3. 📋 Click **"Pull requests"** at the top
+4. ➕ Click **"New pull request"**
+5. 🔄 Click **"compare across forks"**
+6. ☑️ Select **your fork** (your copy) on the right
+7. ✅ Click **"Create pull request"**
+8. 🚀 Click **"Create pull request"** again
 
 <div align="center">
 
 ### 🎉 Done! You Did It!
+
+**Your message will be sealed in ~30 seconds!** ⏱️
 
 </div>
 
@@ -268,7 +284,7 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 | 🔒 **Messages Sealed** | *Coming Soon* |
 | 👥 **People Joined** | *Coming Soon* |
 | 🌍 **Countries** | *Coming Soon* |
-| ⏰ **Days Until 2035** | *~3,653 days* |
+| ⏰ **Days Until 2035** | *~3,653 days since this repository was created* |
 
 </div>
 
@@ -283,7 +299,7 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 ```
 Hey Future Me!
 
-Right now I'm 20, in college, and have no idea what I'm doing with my life.
+Right now I'm 18, in college, and have no idea what I'm doing with my life.
 
 I hope you figured it out. I hope you're happy.
 
