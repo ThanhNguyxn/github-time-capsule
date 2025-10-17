@@ -133,23 +133,25 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           USERNAME="${{ steps.find-file.outputs.username }}"
           
-          # Comment on PR with success message
-          gh pr comment $PR_NUMBER --body "## 🔒 Message Sealed Successfully!
+          # Create success message
+          cat > comment.md << 'EOF'
+          ## 🔒 Message Sealed Successfully!
           
-          Thank you, @${USERNAME}! Your message has been encrypted and sealed.
+          Thank you! Your message has been encrypted and sealed in the time capsule.
           
           **What happened:**
           - ✅ Message encrypted with GPG
-          - ✅ Encrypted file committed to main
+          - ✅ Encrypted file committed to main branch
           - ✅ Original message kept private
           
-          **Encrypted file:** \`sealed/${USERNAME}.txt.gpg\`
           **Unveiling:** January 1, 2035
           
-          See you in the future! 🕰️✨"
+          See you in the future! 🕰️✨
+          EOF
           
-          # Close the PR without merging
-          gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed."
+          # Comment and close PR
+          gh pr comment $PR_NUMBER --body-file comment.md
+          gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed. This PR is now closed."
 
       - name: ✅ Sealing Complete
         run: |
