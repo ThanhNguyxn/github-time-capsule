@@ -4,11 +4,12 @@ import { Octokit } from '@octokit/rest';
 import { validation, securityHeaders } from '@/lib/validation';
 import { rateLimit } from '@/lib/rate-limit';
 import config from '@/lib/env';
+import { authOptions } from '../auth/[...nextauth]/route';
 
 export async function POST(request: NextRequest) {
   try {
     // Get session
-    const session = await getServerSession() as any;
+    const session = await getServerSession(authOptions) as any;
     
     if (!session || !session.user || !session.accessToken) {
       return NextResponse.json(
