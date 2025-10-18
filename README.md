@@ -13,7 +13,6 @@
 ### 🌐 Two Ways to Participate:
 
 **[🖥️ Use Web Interface](https://github-time-capsule.vercel.app/)** *(Easiest - No Git knowledge needed)*  
-**[⚙️ Use GitHub Directly](#-how-to-send-your-message-4-easy-steps)** *(Traditional method)*
 
 ---
 
@@ -78,12 +77,6 @@ We've built a beautiful web interface so **anyone** can participate without know
 4. **Click Submit** - Done! Your message is sealed
 
 > 💡 **Perfect for:** Everyone who wants the easiest way to participate without learning GitHub!
-
----
-
-## ⚙️ Option 2: Use GitHub Directly (Deprecated)
-
-This method is no longer supported. Please use the web interface for a seamless experience.
 
 ---
 
