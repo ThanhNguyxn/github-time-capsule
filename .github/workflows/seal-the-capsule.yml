@@ -1,21 +1,4 @@
-﻿name: Seal the Capsule
-
-on:
-  pull_request:
-    types: [opened]
-    paths:
-      - 'sealed/**'  # Only trigger when sealed/ folder changes
-
-permissions:
-  contents: write
-  pull-requests: write
-
-# Prevent concurrent runs for the same PR
-concurrency:
-  group: seal-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
-
-jobs:
+﻿jobs:
   seal-message:
     runs-on: ubuntu-latest
     
@@ -64,7 +47,7 @@ jobs:
 
           # Allow repository owner to bypass this restriction
           REPO_OWNER="${{ github.repository_owner }}"
-          if [ "$USERNAME" == "$REPO_OWNER" ]; then
+          if [ "$USERNAME" = "$REPO_OWNER" ]; then
             echo "✅ Repository owner is allowed multiple submissions."
           else
             echo "✅ Submission allowed for user: $USERNAME"
@@ -76,8 +59,12 @@ jobs:
           echo "Decrypting messages..."
           for file in sealed/**/*.gpg; do
             OUTPUT_FILE="messages/$(basename "$file" .gpg).txt"
-            gpg --batch --yes --decrypt --output "$OUTPUT_FILE" "$file"
-            echo "Decrypted $file to $OUTPUT_FILE"
+            if gpg --batch --yes --decrypt --output "$OUTPUT_FILE" "$file"; then
+              echo "✅ Decrypted $file to $OUTPUT_FILE"
+            else
+              echo "❌ Failed to decrypt $file"
+              exit 1
+            fi
           done
 
           echo "✅ All messages decrypted successfully!"
@@ -120,15 +107,11 @@ jobs:
           cp "/tmp/${USERNAME}.gpg" "$ENCRYPTED_FILE"
           echo "✅ Restored encrypted file to sealed/"
 
-      - name: ✍️ Commit original and encrypted files
+      - name: "Enhanced Error Handling and Logging"
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
           USER_FOLDER="sealed/${USERNAME}"
           ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
-
-          # Configure Git user identity
-          git config user.name "Time Capsule Bot"
-          git config user.email "bot@github-time-capsule.local"
 
           # Ensure encrypted file exists
           if [ ! -f "$ENCRYPTED_FILE" ]; then
@@ -136,9 +119,21 @@ jobs:
             exit 1
           fi
 
+          # Debugging: Check file details
+          echo "🔍 File details:"
+          ls -l "$ENCRYPTED_FILE"
+          stat "$ENCRYPTED_FILE"
+
+          # Update file timestamp to ensure it's detected as modified
+          touch "$ENCRYPTED_FILE"
+
+          # Configure Git user identity
+          git config user.name "Time Capsule Bot"
+          git config user.email "bot@github-time-capsule.local"
+
           # Commit encrypted .gpg file only
           git add "$ENCRYPTED_FILE"
-          git commit -m "🔒 Sealed message from @$USERNAME"
+          git commit -m "🔒 Sealed message from @$USERNAME" --allow-empty
           git push origin main
 
           echo "✅ Committed encrypted file to main branch"
