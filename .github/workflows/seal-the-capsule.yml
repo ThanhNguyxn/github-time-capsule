@@ -85,22 +85,35 @@ jobs:
       - name: 💾 Save encrypted file temporarily
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
-          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
-          cp "$ENCRYPTED_FILE" "/tmp/${USERNAME}.txt.gpg"
+          ENCRYPTED_FILE="sealed/${USERNAME}.gpg"
+          cp "$ENCRYPTED_FILE" "/tmp/${USERNAME}.gpg"
           echo "✅ Saved encrypted file to /tmp"
 
       - name: 📦 Restore encrypted file
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
-          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
-          cp "/tmp/${USERNAME}.txt.gpg" "$ENCRYPTED_FILE"
+          ENCRYPTED_FILE="sealed/${USERNAME}.gpg"
+
+          # Ensure temporary file exists before copying
+          if [ ! -f "/tmp/${USERNAME}.gpg" ]; then
+            echo "❌ Temporary file /tmp/${USERNAME}.gpg does not exist!"
+            exit 1
+          fi
+
+          cp "/tmp/${USERNAME}.gpg" "$ENCRYPTED_FILE"
           echo "✅ Restored encrypted file to sealed/"
 
       - name: ✍️ Commit original and encrypted files
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
           ORIGINAL_FILE="messages/${USERNAME}.txt"
-          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
+          ENCRYPTED_FILE="sealed/${USERNAME}.gpg"
+
+          # Ensure encrypted file exists
+          if [ ! -f "$ENCRYPTED_FILE" ]; then
+            echo "❌ Encrypted file $ENCRYPTED_FILE does not exist!"
+            exit 1
+          fi
 
           # Add and commit both files
           git config user.name "Time Capsule Bot"
