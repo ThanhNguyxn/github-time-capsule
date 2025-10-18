@@ -85,14 +85,16 @@ jobs:
       - name: 💾 Save encrypted file temporarily
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
-          ENCRYPTED_FILE="sealed/${USERNAME}.gpg"
+          USER_FOLDER="sealed/${USERNAME}"
+          ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
           cp "$ENCRYPTED_FILE" "/tmp/${USERNAME}.gpg"
           echo "✅ Saved encrypted file to /tmp"
 
       - name: 📦 Restore encrypted file
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
-          ENCRYPTED_FILE="sealed/${USERNAME}.gpg"
+          USER_FOLDER="sealed/${USERNAME}"
+          ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
 
           # Ensure temporary file exists before copying
           if [ ! -f "/tmp/${USERNAME}.gpg" ]; then
@@ -107,7 +109,8 @@ jobs:
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
           ORIGINAL_FILE="messages/${USERNAME}.txt"
-          ENCRYPTED_FILE="sealed/${USERNAME}.gpg"
+          USER_FOLDER="sealed/${USERNAME}"
+          ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
 
           # Ensure encrypted file exists
           if [ ! -f "$ENCRYPTED_FILE" ]; then
