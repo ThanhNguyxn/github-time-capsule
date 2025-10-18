@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened]
     paths:
-      - 'messages/**'  # Only trigger when messages/ folder changes
+      - 'sealed/**'  # Only trigger when sealed/ folder changes
 
 permissions:
   contents: write
