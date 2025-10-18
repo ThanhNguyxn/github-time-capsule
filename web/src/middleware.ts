@@ -27,12 +27,20 @@ export function middleware(request: NextRequest) {
     
     // In production, verify origin matches your domain
     if (process.env.NODE_ENV === 'production') {
+      // Allow NEXTAUTH_URL origin, GitHub, and dynamic Vercel preview/production URLs
       const allowedOrigins = [
         process.env.NEXTAUTH_URL,
         'https://github.com',
       ];
-      
-      if (origin && !allowedOrigins.some(allowed => origin.startsWith(allowed || ''))) {
+
+      // Also allow the request host itself (for Vercel preview domains)
+      const requestOrigin = origin || `${request.nextUrl.protocol}//${request.headers.get('host')}`;
+
+      const isAllowed = allowedOrigins.some(allowed => allowed && requestOrigin.startsWith(allowed)) ||
+                        // Allow same-host origin (handles Vercel previews and custom domains)
+                        requestOrigin.endsWith(request.headers.get('host') || '');
+
+      if (origin && !isAllowed) {
         return new NextResponse('Forbidden', { status: 403 });
       }
     }
