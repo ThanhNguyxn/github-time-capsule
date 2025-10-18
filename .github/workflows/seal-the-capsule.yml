@@ -70,7 +70,8 @@ jobs:
                 FILENAME=$(basename "$file" .gpg)
 
                 # Check if filename matches PR author username
-                if [ "$FILENAME" != "$USERNAME" ]; then
+                # Allow filenames with suffixes like (1), (2), etc.
+                if [[ "$FILENAME" != "$USERNAME" && ! "$FILENAME" =~ ^${USERNAME}\ \([0-9]+\)$ ]]; then
                   echo "❌ SECURITY: You can only modify YOUR OWN message file!"
                   echo "Blocked file: $file"
                   exit 1
@@ -106,23 +107,23 @@ jobs:
           fi
 
 
-      - name: "Check for duplicate message and set sealed file name"
-        id: set-sealed-file
+      - name: "Check for daily folder and set sealed file name"
+        id: set-daily-folder
         run: |
           USERNAME="${{ steps.find-file.outputs.username }}"
-          OWNER="ThanhNguyxn"
-          USER_DIR="sealed/${USERNAME}"
-          BASE_FILE="$USER_DIR/${USERNAME}.txt.gpg"
+          TODAY=$(date +%Y-%m-%d)
+          DAILY_FOLDER="sealed/${USERNAME}/${TODAY}"
+          BASE_FILE="$DAILY_FOLDER/${USERNAME}.gpg"
           SEALED_FILE="$BASE_FILE"
-          
+
           git fetch origin main
-          mkdir -p "$USER_DIR"
+          mkdir -p "$DAILY_FOLDER"
           i=0
           while true; do
             if [ $i -eq 0 ]; then
-              CANDIDATE_FILE="$USER_DIR/${USERNAME}.txt.gpg"
+              CANDIDATE_FILE="$DAILY_FOLDER/${USERNAME}.gpg"
             else
-              CANDIDATE_FILE="$USER_DIR/${USERNAME} ($i).txt.gpg"
+              CANDIDATE_FILE="$DAILY_FOLDER/${USERNAME} ($i).gpg"
             fi
             if git ls-tree origin/main "$CANDIDATE_FILE" | grep -q "$CANDIDATE_FILE"; then
               i=$((i+1))
@@ -191,6 +192,11 @@ jobs:
             echo "❌ Encryption failed!"
             exit 1
           fi
+
+      - name: "Skip Encryption (File Already Encrypted)"
+        if: success()
+        run: |
+          echo "Skipping encryption step as the file is already encrypted by the web interface."
 
       - name: "Save encrypted file temporarily"
         run: |

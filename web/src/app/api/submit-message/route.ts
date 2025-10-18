@@ -123,24 +123,25 @@ export async function POST(request: NextRequest) {
       ref: branchName,
     }).catch(() => ({ data: [] })); // If folder doesn't exist, initialize as empty
 
+    // Generate unique file name if user already has files
     let fileName = `${userFolder}/${session.user.username}.gpg`;
     if (Array.isArray(existingFiles)) {
       const existingFileNames = existingFiles.map(file => file.name);
       let counter = 1;
-      while (existingFileNames.includes(`${session.user.username}(${counter}).gpg`)) {
+      while (existingFileNames.includes(fileName)) {
+        fileName = `${userFolder}/${session.user.username} (${counter}).gpg`;
         counter++;
       }
-      fileName = `${userFolder}/${session.user.username}(${counter}).gpg`;
     }
 
     // Check rate limit (1 submission per day, except for the repository owner)
     if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
       const today = new Date().toISOString().split('T')[0];
       const recentFile = Array.isArray(existingFiles)
-        ? existingFiles.find((file: any) => file.name.startsWith(session.user.username) && file.name.endsWith('.gpg'))
+        ? existingFiles.find((file: any) => file.name.startsWith(session.user.username) && file.name.includes(today))
         : undefined;
 
-      if (recentFile && recentFile.name.includes(today)) {
+      if (recentFile) {
         return NextResponse.json(
           { error: 'You can only submit one message per day.' },
           { status: 429, headers: securityHeaders }
@@ -153,6 +154,40 @@ export async function POST(request: NextRequest) {
       repo,
       path: fileName,
       message: `Add encrypted message from ${session.user.username}`,
+      content: encrypted,
+      encoding: 'base64',
+      branch: branchName,
+    });
+
+    // Ensure user folder exists in 'sealed' and save the encrypted file
+    const sealedFolder = `sealed/${session.user.username}`;
+    try {
+      await octokit.repos.getContent({
+        owner: userRepoOwner,
+        repo,
+        path: sealedFolder,
+        ref: branchName,
+      });
+    } catch {
+      // Folder doesn't exist, create it
+      await octokit.repos.createOrUpdateFileContents({
+        owner: userRepoOwner,
+        repo,
+        path: `${sealedFolder}/.keep`,
+        message: `Create sealed folder for ${session.user.username}`,
+        content: '',
+        encoding: 'utf-8',
+        branch: branchName,
+      });
+    }
+
+    // Save the encrypted file in the sealed folder
+    const sealedFileName = `${sealedFolder}/${session.user.username}.gpg`;
+    await octokit.repos.createOrUpdateFileContents({
+      owner: userRepoOwner,
+      repo,
+      path: sealedFileName,
+      message: `Add sealed message for ${session.user.username}`,
       content: encrypted,
       encoding: 'base64',
       branch: branchName,
