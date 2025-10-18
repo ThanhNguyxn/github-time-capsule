@@ -89,142 +89,37 @@ We've built a beautiful web interface so **anyone** can participate without know
 
 ## ⚙️ Option 2: Use GitHub Directly (Traditional)
 
-### 👨‍💻 **For Technical Users**
+### 👨‍💻 **For All Users**
 
-If you're comfortable with Git and GitHub, you can submit directly via Pull Request:
+Submit your message directly using our web interface:
 
-## 🚀 How to Send Your Message (4 Easy Steps)
+## 🚀 How to Send Your Message (3 Easy Steps)
 
-### Step 1️⃣: Click "Fork"
+### Step 1️⃣: Visit the Web Interface
 
 <div align="center">
 
-### **[👉 Click Here to Fork This Repository](../../fork)**
+### **[👉 Click Here to Submit Your Message](https://your-app.vercel.app)**
 
-[![Fork Button](https://img.shields.io/badge/Fork-This%20Repository-blue?style=for-the-badge&logo=github)](../../fork)
-
-**Or click the "Fork" button at the top-right of this page ↗️**
+[![Submit Button](https://img.shields.io/badge/Submit-Your%20Message-blue?style=for-the-badge&logo=github)](https://your-app.vercel.app)
 
 </div>
 
-> 💡 This creates your own copy. It's **free** and takes **2 seconds**!
+> 💡 This is the easiest way to send your message. No technical knowledge required!
 
 ---
 
-### Step 2️⃣: Create Your Message File
+### Step 2️⃣: Write Your Message
 
-<div align="center">
-
-**In your forked repository:**
-
-</div>
-
-1. 📁 Click on the **`messages`** folder
-2. ➕ Click **"Add file"** → **"Create new file"**
-3. ✏️ Name it: **`your-username.txt`**
-
-**📝 Examples:**
-```
-Username: john → File name: john.txt
-Username: sarah_123 → File name: sarah_123.txt
-Username: ThanhNguyxn → File name: ThanhNguyxn.txt
-```
-
-> ⚠️ **CRITICAL:** Filename MUST match your GitHub username EXACTLY (case-sensitive)!
-> 
-> 🔒 The workflow will **automatically verify** this. If it doesn't match, your PR will be rejected with instructions.
-> 
-> 💡 **Why?** This prevents name conflicts (GitHub usernames are globally unique) and protects your file from others!
+1. ✍️ Open the message editor on the web interface.
+2. 📝 Write your message to the future.
 
 ---
 
-### Step 3️⃣: Write Your Message
+### Step 3️⃣: Submit Your Message
 
-<div align="center">
-
-**✍️ Write whatever you want to tell yourself (or the world) in 2035!**
-
-</div>
-
-<details>
-<summary><b>💡 Need ideas? Click here!</b></summary>
-
-**Things you could write about:**
-
-✍️ **Personal:**
-- How old are you?
-- What are you doing in life?
-- What makes you happy?
-- What are you worried about?
-
-🎯 **Dreams & Goals:**
-- What do you want to achieve?
-- Where do you want to be in 10 years?
-- What are you working toward?
-
-🔮 **Predictions:**
-- What will technology be like?
-- Will AI have changed everything?
-- What about the world?
-
-💡 **Advice:**
-- What have you learned?
-- What do you want to remember?
-- What would you tell your future self?
-
-🎨 **Creative:**
-- A favorite quote
-- A poem or story
-- Things you're grateful for
-- A code snippet (if you code!)
-
-</details>
-
-**Example Message:**
-```
-Dear Future Me,
-
-It's October 2025. I'm 18, learning to code, and hoping to be a developer someday.
-
-I wonder what you're doing now? Did you achieve your dreams? Are you happy?
-
-Remember: Never give up. Be kind. Keep learning.
-
-Love,
-Past You ❤️
-```
-
-> 📝 **Write from your heart!** Any length is fine. Any language works!
-
----
-
-### Step 4️⃣: Submit It (Create Pull Request)
-
-1. ✅ Scroll down and click **"Commit changes"** (the green button)
-2. 🔙 Go back to **[this original page](../../)** (the main project)
-3. 📋 Click **"Pull requests"** at the top
-4. ➕ Click **"New pull request"**
-5. 🔄 Click **"compare across forks"**
-6. ☑️ Select **your fork** (your copy) on the right
-7. ✅ Click **"Create pull request"**
-8. 🚀 Click **"Create pull request"** again
-
-<div align="center">
-
-### 🎉 Done! You Did It!
-
-**Your message will be sealed in ~30 seconds!** ⏱️
-
-</div>
-
-**What happens next (automatically in 30 seconds):**
-
-✅ GitHub locks your message  
-✅ Saves it in a special folder  
-✅ Closes your request  
-✅ Confirms it's sealed  
-
-> 🔒 **Your message is now locked until 2035!** Nobody (not even you) can read it!
+1. 🔒 Your message will be encrypted and sealed.
+2. ✅ Done! Your message is now part of the time capsule.
 
 ---
 
