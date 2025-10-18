@@ -210,27 +210,6 @@ Write anything you want - this message will be sealed until January 1, 2035!"
               </ul>
             </div>
 
-            {/* File Upload */}
-            <div className="mb-4">
-              <label htmlFor="file-upload" className="block text-white mb-2">Upload a file:</label>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".txt"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                      setMessage(event.target?.result as string);
-                    };
-                    reader.readAsText(file);
-                  }
-                }}
-                className="w-full px-4 py-2 bg-white/5 border-2 border-white/30 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400"
-              />
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
