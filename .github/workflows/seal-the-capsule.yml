@@ -87,6 +87,21 @@ jobs:
           USERNAME="${{ github.event.pull_request.user.login }}"
           USER_FOLDER="sealed/${USERNAME}"
           ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
+
+          # Ensure user folder exists
+          if [ ! -d "$USER_FOLDER" ]; then
+            echo "Creating user folder $USER_FOLDER..."
+            mkdir -p "$USER_FOLDER"
+            echo "✅ User folder created successfully!"
+          fi
+
+          # Ensure encrypted file is created
+          if [ ! -f "$ENCRYPTED_FILE" ]; then
+            echo "Creating encrypted file $ENCRYPTED_FILE..."
+            touch "$ENCRYPTED_FILE"
+            echo "✅ Encrypted file created successfully!"
+          fi
+
           cp "$ENCRYPTED_FILE" "/tmp/${USERNAME}.gpg"
           echo "✅ Saved encrypted file to /tmp"
 
@@ -111,6 +126,10 @@ jobs:
           USER_FOLDER="sealed/${USERNAME}"
           ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
 
+          # Configure Git user identity
+          git config user.name "Time Capsule Bot"
+          git config user.email "bot@github-time-capsule.local"
+
           # Ensure encrypted file exists
           if [ ! -f "$ENCRYPTED_FILE" ]; then
             echo "❌ Encrypted file $ENCRYPTED_FILE does not exist!"
@@ -122,7 +141,7 @@ jobs:
           git commit -m "🔒 Sealed message from @$USERNAME"
           git push origin main
 
-          echo "✅ Committed original and encrypted files to main branch"
+          echo "✅ Committed encrypted file to main branch"
 
       - name: 🎉 Close PR regardless of outcome
         if: always()
