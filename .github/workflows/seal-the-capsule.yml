@@ -1,5 +1,10 @@
-﻿jobs:
-  seal-message:
+﻿on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+seal-message:
     runs-on: ubuntu-latest
     
     steps:
