@@ -108,7 +108,6 @@ jobs:
       - name: ✍️ Commit original and encrypted files
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
-          ORIGINAL_FILE="messages/${USERNAME}.txt"
           USER_FOLDER="sealed/${USERNAME}"
           ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
 
@@ -118,10 +117,8 @@ jobs:
             exit 1
           fi
 
-          # Add and commit both files
-          git config user.name "Time Capsule Bot"
-          git config user.email "bot@github-time-capsule.local"
-          git add "$ORIGINAL_FILE" "$ENCRYPTED_FILE"
+          # Commit encrypted .gpg file only
+          git add "$ENCRYPTED_FILE"
           git commit -m "🔒 Sealed message from @$USERNAME"
           git push origin main
 
