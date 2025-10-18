@@ -39,7 +39,7 @@ export default function SubmitPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ encrypted: encryptedBase64 }),
+        body: JSON.stringify({ message: encryptedBase64 }),
       });
 
       const data = await response.json();
@@ -208,6 +208,27 @@ Write anything you want - this message will be sealed until January 1, 2035!"
                 <li>✅ Sealed until January 1, 2035</li>
                 <li>✅ Nobody can read it (not even you!) until then</li>
               </ul>
+            </div>
+
+            {/* File Upload */}
+            <div className="mb-4">
+              <label htmlFor="file-upload" className="block text-white mb-2">Upload a file:</label>
+              <input
+                id="file-upload"
+                type="file"
+                accept=".txt"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setMessage(event.target?.result as string);
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+                className="w-full px-4 py-2 bg-white/5 border-2 border-white/30 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400"
+              />
             </div>
 
             {/* Submit Button */}
