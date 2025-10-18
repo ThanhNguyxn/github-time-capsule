@@ -10,10 +10,6 @@
 
 **Write today. Read in 2035. No technical knowledge required.**
 
-### 🌐 Two Ways to Participate:
-
-**[🖥️ Use Web Interface](https://github-time-capsule.vercel.app/)** *(Easiest - No Git knowledge needed)*  
-
 ---
 
 </div>
@@ -56,7 +52,7 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 
 ---
 
-## 🌐 Option 1: Use Our Web Interface (Easiest!)
+## 🌐 Use Our Web Interface 
 
 ### 🎨 **For Everyone**
 
