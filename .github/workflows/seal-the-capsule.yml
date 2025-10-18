@@ -96,6 +96,21 @@ jobs:
           cp "/tmp/${USERNAME}.txt.gpg" "$ENCRYPTED_FILE"
           echo "✅ Restored encrypted file to sealed/"
 
+      - name: ✍️ Commit original and encrypted files
+        run: |
+          USERNAME="${{ github.event.pull_request.user.login }}"
+          ORIGINAL_FILE="messages/${USERNAME}.txt"
+          ENCRYPTED_FILE="sealed/${USERNAME}.txt.gpg"
+
+          # Add and commit both files
+          git config user.name "Time Capsule Bot"
+          git config user.email "bot@github-time-capsule.local"
+          git add "$ORIGINAL_FILE" "$ENCRYPTED_FILE"
+          git commit -m "🔒 Sealed message from @$USERNAME"
+          git push origin main
+
+          echo "✅ Committed original and encrypted files to main branch"
+
       - name: 🎉 Close PR regardless of outcome
         if: always()
         uses: actions/github-script@v7
