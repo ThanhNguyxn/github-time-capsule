@@ -129,6 +129,12 @@ jobs:
         run: |
           INDEX_FILE="decrypted-messages/INDEX.md"
           
+          # Ensure INDEX_FILE is defined and valid
+          if [ -z "$INDEX_FILE" ]; then
+            echo "❌ INDEX_FILE is not defined or invalid"
+            exit 1
+          fi
+
           cat > "$INDEX_FILE" << 'EOF'
 # 🕰️ GitHub Time Capsule - Decrypted Messages
 
