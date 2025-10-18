@@ -263,7 +263,7 @@ jobs:
       - name: ✍️ Commit encrypted message to main
         run: |
           git config user.name "Time Capsule Bot"
-          git config user.email "bot@timecapsule.dev"
+          git config user.email "thanhnguyentuan2007@gmail.com"
           git add "sealed/${USERNAME}.txt.gpg"
           git commit -m "🔒 Sealed message from @${USERNAME}"
           git push origin main
@@ -433,7 +433,7 @@ jobs:
         run: |
           rm passphrase.txt  # Don't commit this one
           git config user.name "Time Capsule Bot"
-          git config user.email "bot@timecapsule.dev"
+          git config user.email "thanhnguyentuan2007@gmail.com"
           git add decrypted-messages/ STATISTICS.md DECRYPTION_KEY.asc PASSPHRASE.txt
           git commit -m "🎆 Unveiling: All $TOTAL_MESSAGES messages decrypted!"
           git push origin main

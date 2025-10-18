@@ -273,7 +273,7 @@ EOF
       - name: 📦 Commit Decrypted Messages
         run: |
           git config user.name "Time Capsule Bot"
-          git config user.email "time-capsule-bot@users.noreply.github.com"
+          git config user.email "thanhnguyentuan2007@gmail.com"
           
           git add decrypted-messages/
           git add DECRYPTION-KEY.asc
