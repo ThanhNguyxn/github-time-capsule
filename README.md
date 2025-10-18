@@ -59,7 +59,7 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 
 ## 🌐 Option 1: Use Our Web Interface (Easiest!)
 
-### 🎨 **For Non-Technical Users**
+### 🎨 **For Everyone**
 
 We've built a beautiful web interface so **anyone** can participate without knowing Git or GitHub!
 
@@ -72,54 +72,18 @@ We've built a beautiful web interface so **anyone** can participate without know
 
 ### 🚀 How to Use:
 
-1. **Visit the Web App** (Coming Soon - Under Development)
+1. **Visit the Web App**: [GitHub Time Capsule Web Interface](https://github-time-capsule.vercel.app/)
 2. **Sign in with GitHub** - One click, totally safe
 3. **Write your message** - Use the simple form
 4. **Click Submit** - Done! Your message is sealed
 
-> 💡 **Perfect for:** People who want the easiest way to participate without learning GitHub!
-
-### 📖 Web Interface Documentation:
-
-- **[Setup Guide](./web/README.md)** - For developers who want to run locally
-- **[OAuth Setup](./web/OAUTH-SETUP.md)** - GitHub OAuth configuration
-- **[Security](./web/SECURITY.md)** - How we protect your data
+> 💡 **Perfect for:** Everyone who wants the easiest way to participate without learning GitHub!
 
 ---
 
-## ⚙️ Option 2: Use GitHub Directly (Traditional)
+## ⚙️ Option 2: Use GitHub Directly (Deprecated)
 
-### 👨‍💻 **For All Users**
-
-Submit your message directly using our web interface:
-
-## 🚀 How to Send Your Message (3 Easy Steps)
-
-### Step 1️⃣: Visit the Web Interface
-
-<div align="center">
-
-### **[👉 Click Here to Submit Your Message](https://your-app.vercel.app)**
-
-[![Submit Button](https://img.shields.io/badge/Submit-Your%20Message-blue?style=for-the-badge&logo=github)](https://your-app.vercel.app)
-
-</div>
-
-> 💡 This is the easiest way to send your message. No technical knowledge required!
-
----
-
-### Step 2️⃣: Write Your Message
-
-1. ✍️ Open the message editor on the web interface.
-2. 📝 Write your message to the future.
-
----
-
-### Step 3️⃣: Submit Your Message
-
-1. 🔒 Your message will be encrypted and sealed.
-2. ✅ Done! Your message is now part of the time capsule.
+This method is no longer supported. Please use the web interface for a seamless experience.
 
 ---
 
@@ -313,17 +277,6 @@ With hope,
 ---
 
 <div align="center">
-
-## 🚀 Ready to Send Your Message?
-
-### **[👉 Click Here to Start (Fork This Repo)](../../fork)**
-
-[![Get Started](https://img.shields.io/badge/Get%20Started-Fork%20Now!-success?style=for-the-badge&logo=github)](../../fork)
-
-<br>
-
-**The future is waiting for your message!** 🎉  
-**It only takes 5 minutes!** ⏱️
 
 <br>
 
