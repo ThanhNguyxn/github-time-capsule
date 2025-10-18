@@ -36,279 +36,49 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
           
-          # Count changes outside messages/
-          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
-          
+          # Count changes outside sealed/
+          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^sealed/" | grep -v "^$" || true)
+
           if [ ! -z "$DANGEROUS_CHANGES" ]; then
-            echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
+            echo "❌ SECURITY: PR attempts to modify files outside sealed/ folder!"
             echo "Blocked files:"
             echo "$DANGEROUS_CHANGES"
             echo ""
-            echo "⚠️ Only files in messages/ folder are allowed."
-            exit 1
-          fi
-          
-          # Check for multiple message files (spam detection)
-          USERNAME="${{ github.event.pull_request.user.login }}"
-          USER_FOLDER="messages/${USERNAME}"
-          MESSAGE_COUNT=$(echo "$CHANGED_FILES" | grep "^${USER_FOLDER}/.*\.gpg$" | wc -l)
-          if [ "$MESSAGE_COUNT" -gt 1 ]; then
-            echo "❌ SECURITY: PR contains multiple message files in user folder!"
-            echo "Only 1 message per user is allowed."
+            echo "⚠️ Only files in sealed/ folder are allowed."
             exit 1
           fi
 
-          # Check file ownership - users can only modify their own folder
-          echo ""
-          echo "🔍 Validating file ownership..."
-          MESSAGE_FILES=$(echo "$CHANGED_FILES" | grep "^${USER_FOLDER}/.*\.gpg$" || true)
-
-          if [ ! -z "$MESSAGE_FILES" ]; then
-            while IFS= read -r file; do
-              if [ ! -z "$file" ]; then
-                # Extract filename without path and extension
-                FILENAME=$(basename "$file" .gpg)
-
-                # Check if filename matches PR author username
-                # Allow filenames with suffixes like (1), (2), etc.
-                if [[ "$FILENAME" != "$USERNAME" && ! "$FILENAME" =~ ^${USERNAME}\ \([0-9]+\)$ ]]; then
-                  echo "❌ SECURITY: You can only modify YOUR OWN message file!"
-                  echo "Blocked file: $file"
-                  exit 1
-                fi
-              fi
-            done <<< "$MESSAGE_FILES"
-          fi
-          
           echo "✅ Security check passed"
 
-      - name: 🔍 Find new message file
-        id: find-file
+      - name: "Limit submissions to one per day"
         run: |
-          # Get the username from the PR author
           USERNAME="${{ github.event.pull_request.user.login }}"
-          MESSAGE_FILE="messages/${USERNAME}.txt"
-          
-          echo "Looking for message file: $MESSAGE_FILE"
-          
-          if [ -f "$MESSAGE_FILE" ]; then
-            echo "✅ Found message file: $MESSAGE_FILE"
-            echo "message_file=$MESSAGE_FILE" >> $GITHUB_OUTPUT
-            echo "username=$USERNAME" >> $GITHUB_OUTPUT
-          else
-            echo "❌ Expected message file not found: $MESSAGE_FILE"
-            echo "Please create a file named messages/${USERNAME}.txt with your message."
-            echo ""
-            echo "📝 Instructions:"
-            echo "1. File must be in messages/ folder"
-            echo "2. File must be named: ${USERNAME}.txt (your GitHub username)"
-            echo "3. File must contain your message text"
-            exit 1
-          fi
-
-
-      - name: "Check for daily folder and set sealed file name"
-        id: set-daily-folder
-        run: |
-          USERNAME="${{ steps.find-file.outputs.username }}"
           TODAY=$(date +%Y-%m-%d)
           DAILY_FOLDER="sealed/${USERNAME}/${TODAY}"
-          BASE_FILE="$DAILY_FOLDER/${USERNAME}.gpg"
-          SEALED_FILE="$BASE_FILE"
 
-          git fetch origin main
-          mkdir -p "$DAILY_FOLDER"
-          i=0
-          while true; do
-            if [ $i -eq 0 ]; then
-              CANDIDATE_FILE="$DAILY_FOLDER/${USERNAME}.gpg"
-            else
-              CANDIDATE_FILE="$DAILY_FOLDER/${USERNAME} ($i).gpg"
-            fi
-            if git ls-tree origin/main "$CANDIDATE_FILE" | grep -q "$CANDIDATE_FILE"; then
-              i=$((i+1))
-            else
-              SEALED_FILE="$CANDIDATE_FILE"
-              break
-            fi
-          done
-          echo "Using file: $SEALED_FILE"
-          echo "sealed_file=$SEALED_FILE" >> $GITHUB_OUTPUT
-          echo "✅ Sealed file name set: $SEALED_FILE"
-
-      - name: "Verify message content"
-        run: |
-          MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
-          
-          if [ ! -s "$MESSAGE_FILE" ]; then
-            echo "❌ Message file is empty. Please add your message to the future!"
+          # Check if the user already has a submission for today
+          if [ -d "$DAILY_FOLDER" ]; then
+            echo "❌ You have already submitted a message today! Only one submission per day is allowed."
             exit 1
           fi
-          
-          FILE_SIZE=$(wc -c < "$MESSAGE_FILE")
-          echo "📊 Message size: $FILE_SIZE bytes"
-          
-          if [ $FILE_SIZE -gt 1048576 ]; then
-            echo "❌ Message is too large (>1MB). Please keep your message concise."
-            exit 1
-          fi
-          
-          # Check for suspicious content (basic spam detection)
-          if grep -qi "http://" "$MESSAGE_FILE" || grep -qi "https://" "$MESSAGE_FILE"; then
-            URL_COUNT=$(grep -oi "http" "$MESSAGE_FILE" | wc -l)
-            if [ "$URL_COUNT" -gt 3 ]; then
-              echo "⚠️ WARNING: Message contains many URLs ($URL_COUNT)"
-              echo "This might be spam. Review carefully."
-            fi
-          fi
-          
-          echo "✅ Message content validated"
 
-      - name: 🔐 Setup GPG
-        run: |
-          # Import the public key from secrets
-          echo "${{ secrets.GPG_PUBLIC_KEY }}" | gpg --import
-          
-          # Verify the key was imported
-          gpg --list-keys
-
-      - name: 🔒 Encrypt the message
-        id: encrypt
-        run: |
-          MESSAGE_FILE="${{ steps.find-file.outputs.message_file }}"
-          ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
-          USER_DIR="$(dirname "$ENCRYPTED_FILE")"
-          mkdir -p "$USER_DIR"
-          # Encrypt in batch mode, no tty, no prompt
-          gpg --batch --yes --trust-model always --encrypt --recipient time-capsule-2035 \
-              --output "$ENCRYPTED_FILE" "$MESSAGE_FILE"
-          
-          if [ -f "$ENCRYPTED_FILE" ]; then
-            echo "✅ Message encrypted successfully!"
-            echo "encrypted_file=$ENCRYPTED_FILE" >> $GITHUB_OUTPUT
-            ENCRYPTED_SIZE=$(wc -c < "$ENCRYPTED_FILE")
-            echo "🔒 Encrypted size: $ENCRYPTED_SIZE bytes"
+          # Allow repository owner to bypass this restriction
+          REPO_OWNER="${{ github.repository_owner }}"
+          if [ "$USERNAME" == "$REPO_OWNER" ]; then
+            echo "✅ Repository owner is allowed multiple submissions."
           else
-            echo "❌ Encryption failed!"
-            exit 1
+            echo "✅ Submission allowed for user: $USERNAME"
           fi
 
-      - name: "Skip Encryption (File Already Encrypted)"
-        if: success()
+      - name: "Decrypt messages on January 1, 2035"
+        if: ${{ github.event.pull_request.merged_at && github.event.pull_request.merged_at == '2035-01-01' }}
         run: |
-          echo "Skipping encryption step as the file is already encrypted by the web interface."
+          echo "Decrypting messages..."
+          for file in sealed/**/*.gpg; do
+            OUTPUT_FILE="messages/$(basename "$file" .gpg).txt"
+            gpg --batch --yes --decrypt --output "$OUTPUT_FILE" "$file"
+            echo "Decrypted $file to $OUTPUT_FILE"
+          done
 
-      - name: "Save encrypted file temporarily"
-        run: |
-          ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
-          BASENAME=$(basename "$ENCRYPTED_FILE")
-          cp "$ENCRYPTED_FILE" "/tmp/$BASENAME"
-          echo "Saved encrypted file to /tmp/$BASENAME"
-
-      - name: "Checkout main branch"
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 📦 Commit encrypted message to main
-        run: |
-          # Configure git
-          git config user.name "Time Capsule Bot"
-          git config user.email "time-capsule-bot@users.noreply.github.com"
-          ENCRYPTED_FILE="${{ steps.set-sealed-file.outputs.sealed_file }}"
-          USER_DIR="$(dirname "$ENCRYPTED_FILE")"
-          BASENAME=$(basename "$ENCRYPTED_FILE")
-          mkdir -p "$USER_DIR"
-          cp "/tmp/$BASENAME" "$ENCRYPTED_FILE"
-          git add "$ENCRYPTED_FILE"
-          git commit -m "🔒 Seal message from user @${{ github.actor }}"
-          git push origin main
-
-      - name: 📊 Update statistics
-        run: |
-          # Count total sealed messages
-          TOTAL_MESSAGES=$(ls -1 sealed/*.gpg 2>/dev/null | wc -l)
-          echo "📈 Total messages sealed: $TOTAL_MESSAGES"
-          
-          # This could be extended to update a stats file or README badge
-
-      - name: 🎉 Close Pull Request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          USERNAME="${{ steps.find-file.outputs.username }}"
-          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          
-          # Create success message
-          cat > comment.md << 'EOF'
-          ## 🔒 Message Sealed Successfully!
-          
-          Thank you! Your message has been encrypted and sealed in the time capsule.
-          
-          **What happened:**
-          - ✅ Message encrypted with GPG
-          - ✅ Encrypted file committed to main branch
-          - ✅ Original message destroyed (branch deleted)
-          
-          **Unveiling:** January 1, 2035
-          
-          See you in the future! 🕰️✨
-          EOF
-          
-          # Comment and close PR
-          gh pr comment $PR_NUMBER --body-file comment.md
-          gh pr close $PR_NUMBER --comment "🔐 Time capsule sealed. This PR is now closed."
-          
-          # Delete the branch to destroy original message
-          echo "🗑️ Deleting branch '$BRANCH_NAME' to destroy original message..."
-          git push origin --delete "$BRANCH_NAME" || echo "⚠️ Branch already deleted or protected"
-
-      - name: ✅ Sealing Complete
-        run: |
-          echo "╔════════════════════════════════════════╗"
-          echo "║   🔒 TIME CAPSULE SEALED 🔒           ║"
-          echo "╚════════════════════════════════════════╝"
-          echo ""
-          echo "Message from @${{ steps.find-file.outputs.username }} has been sealed."
-          echo "Unlock Date: January 1, 2035"
-          echo ""
-          echo "The message sleeps, waiting for its time..."
-
-
-      - name: ❌ Handle Failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          USERNAME="${{ github.event.pull_request.user.login }}"
-          
-          # Create error message
-          cat > error-comment.md << 'EOF'
-          ## ❌ Sealing Failed
-          
-          Unfortunately, we couldn't seal your message. This PR is now closed.
-          
-          **Common issues:**
-          - ❌ File name doesn't match your username
-          - ❌ File is empty or too large (>1MB)
-          - ❌ You already have a sealed message
-          - ❌ PR modifies files outside `messages/` folder
-          - ❌ PR contains multiple message files
-          
-          **How to fix:**
-          1. Check the workflow logs above for specific error
-          2. Fix the issue in your branch
-          3. Open a new pull request after correcting the problem
-          
-          **Need help?** Open an issue or check [FOR-DEVELOPERS.md](../FOR-DEVELOPERS.md)
-          EOF
-          
-          # Comment on PR
-          gh pr comment $PR_NUMBER --body-file error-comment.md || echo "Failed to comment"
-          gh pr close $PR_NUMBER --comment "❌ Sealing failed. This PR is now closed."
-          
-          echo "❌ Workflow failed - PR closed with error message"
+          echo "✅ All messages decrypted successfully!"
 

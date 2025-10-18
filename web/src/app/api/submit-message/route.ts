@@ -114,51 +114,6 @@ export async function POST(request: NextRequest) {
       sha: mainSha,
     });
 
-    // Step 4: Create the encrypted message file in user-specific folder
-    const userFolder = `messages/${session.user.username}`;
-    const { data: existingFiles } = await octokit.repos.getContent({
-      owner: userRepoOwner,
-      repo,
-      path: userFolder,
-      ref: branchName,
-    }).catch(() => ({ data: [] })); // If folder doesn't exist, initialize as empty
-
-    // Generate unique file name if user already has files
-    let fileName = `${userFolder}/${session.user.username}.gpg`;
-    if (Array.isArray(existingFiles)) {
-      const existingFileNames = existingFiles.map(file => file.name);
-      let counter = 1;
-      while (existingFileNames.includes(fileName)) {
-        fileName = `${userFolder}/${session.user.username} (${counter}).gpg`;
-        counter++;
-      }
-    }
-
-    // Check rate limit (1 submission per day, except for the repository owner)
-    if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
-      const today = new Date().toISOString().split('T')[0];
-      const recentFile = Array.isArray(existingFiles)
-        ? existingFiles.find((file: any) => file.name.startsWith(session.user.username) && file.name.includes(today))
-        : undefined;
-
-      if (recentFile) {
-        return NextResponse.json(
-          { error: 'You can only submit one message per day.' },
-          { status: 429, headers: securityHeaders }
-        );
-      }
-    }
-
-    await octokit.repos.createOrUpdateFileContents({
-      owner: userRepoOwner,
-      repo,
-      path: fileName,
-      message: `Add encrypted message from ${session.user.username}`,
-      content: encrypted,
-      encoding: 'base64',
-      branch: branchName,
-    });
-
     // Ensure user folder exists in 'sealed' and save the encrypted file
     const sealedFolder = `sealed/${session.user.username}`;
     try {
@@ -192,6 +147,28 @@ export async function POST(request: NextRequest) {
       encoding: 'base64',
       branch: branchName,
     });
+
+    // Check rate limit (1 submission per day, except for the repository owner)
+    if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: existingFiles } = await octokit.repos.getContent({
+        owner: userRepoOwner,
+        repo,
+        path: sealedFolder,
+        ref: branchName,
+      }).catch(() => ({ data: [] })); // If folder doesn't exist, initialize as empty
+
+      const recentFile = Array.isArray(existingFiles)
+        ? existingFiles.find((file: any) => file.name.startsWith(session.user.username) && file.name.includes(today))
+        : undefined;
+
+      if (recentFile) {
+        return NextResponse.json(
+          { error: 'You can only submit one message per day.' },
+          { status: 429, headers: securityHeaders }
+        );
+      }
+    }
 
     // Step 5: Create pull request to original repo
     const { data: prData } = await octokit.pulls.create({
