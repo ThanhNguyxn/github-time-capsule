@@ -5,6 +5,7 @@ import { validation, securityHeaders } from '@/lib/validation';
 import { rateLimit } from '@/lib/rate-limit';
 import config from '@/lib/env';
 import { authOptions } from '@/lib/auth';
+import { encryptMessage } from '@/lib/encrypt';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,39 +47,23 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { encrypted } = body;
-    if (!encrypted || typeof encrypted !== 'string') {
+    const { message } = body;
+    if (!message || typeof message !== 'string') {
       return NextResponse.json(
-        { error: 'Missing encrypted message' },
+        { error: 'Missing message content' },
         { status: 400, headers: securityHeaders }
       );
     }
 
-    // Validate username
-    const username = session.user.username;
-    if (!username) {
-      return NextResponse.json(
-        { error: 'GitHub username not found in session' },
-        { status: 400, headers: securityHeaders }
-      );
-    }
-
-    const usernameValidation = validation.validateUsername(username);
-    if (!usernameValidation.valid) {
-      return NextResponse.json(
-        { error: usernameValidation.error },
-        { status: 400, headers: securityHeaders }
-      );
-    }
-
-    // Decode encrypted message from base64
-    let encryptedBuffer: Buffer;
+    // Encrypt the message
+    let encrypted;
     try {
-      encryptedBuffer = Buffer.from(encrypted, 'base64');
-    } catch {
+      const encryptedBuffer = await encryptMessage(message);
+      encrypted = Buffer.from(encryptedBuffer).toString('base64');
+    } catch (error) {
       return NextResponse.json(
-        { error: 'Invalid encrypted message format' },
-        { status: 400, headers: securityHeaders }
+        { error: 'Failed to encrypt message' },
+        { status: 500, headers: securityHeaders }
       );
     }
 
@@ -89,14 +74,13 @@ export async function POST(request: NextRequest) {
 
     const owner = config.github.repoOwner;
     const repo = config.github.repoName;
-    const branchName = `add-message-${username}-${Date.now()}`;
-  const fileName = `messages/${username}.gpg`;
+    const branchName = `add-message-${session.user.username}-${Date.now()}`;
 
     // Step 1: Fork the repository (if not already forked)
-    const userRepoOwner = username;
+    const userRepoOwner = session.user.username;
     try {
       await octokit.repos.get({
-        owner: username,
+        owner: session.user.username,
         repo: repo,
       });
     } catch (error: any) {
@@ -130,12 +114,45 @@ export async function POST(request: NextRequest) {
       sha: mainSha,
     });
 
-    // Step 4: Create the encrypted message file
+    // Step 4: Create the encrypted message file in user-specific folder
+    const userFolder = `messages/${session.user.username}`;
+    const { data: existingFiles } = await octokit.repos.getContent({
+      owner: userRepoOwner,
+      repo,
+      path: userFolder,
+      ref: branchName,
+    }).catch(() => ({ data: [] })); // If folder doesn't exist, initialize as empty
+
+    let fileName = `${userFolder}/${session.user.username}.gpg`;
+    if (Array.isArray(existingFiles)) {
+      const existingFileNames = existingFiles.map(file => file.name);
+      let counter = 1;
+      while (existingFileNames.includes(`${session.user.username}(${counter}).gpg`)) {
+        counter++;
+      }
+      fileName = `${userFolder}/${session.user.username}(${counter}).gpg`;
+    }
+
+    // Check rate limit (1 submission per day, except for the repository owner)
+    if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
+      const today = new Date().toISOString().split('T')[0];
+      const recentFile = Array.isArray(existingFiles)
+        ? existingFiles.find((file: any) => file.name.startsWith(session.user.username) && file.name.endsWith('.gpg'))
+        : undefined;
+
+      if (recentFile && recentFile.name.includes(today)) {
+        return NextResponse.json(
+          { error: 'You can only submit one message per day.' },
+          { status: 429, headers: securityHeaders }
+        );
+      }
+    }
+
     await octokit.repos.createOrUpdateFileContents({
       owner: userRepoOwner,
       repo,
       path: fileName,
-      message: `Add encrypted message from ${username}`,
+      message: `Add encrypted message from ${session.user.username}`,
       content: encrypted,
       encoding: 'base64',
       branch: branchName,
@@ -145,12 +162,12 @@ export async function POST(request: NextRequest) {
     const { data: prData } = await octokit.pulls.create({
       owner,
       repo,
-      title: `Time Capsule Message from @${username}`,
+      title: `Time Capsule Message from @${session.user.username}`,
       head: `${userRepoOwner}:${branchName}`,
       base: 'main',
       body: `🕰️ **Time Capsule Message Submission**
 
-👤 **From:** @${username}
+👤 **From:** @${session.user.username}
 📅 **Date:** ${new Date().toLocaleDateString()}
 🔒 **Will be sealed until:** January 1, 2035
 

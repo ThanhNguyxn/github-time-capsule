@@ -49,3 +49,6 @@ local-test/
 
 # GitHub Actions cache
 .github/.DS_Store
+
+# Environment variables
+.env.local

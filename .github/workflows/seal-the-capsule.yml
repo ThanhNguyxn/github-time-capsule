@@ -49,45 +49,32 @@ jobs:
           fi
           
           # Check for multiple message files (spam detection)
-          MESSAGE_COUNT=$(echo "$CHANGED_FILES" | grep "^messages/.*\.txt$" | wc -l)
+          USERNAME="${{ github.event.pull_request.user.login }}"
+          USER_FOLDER="messages/${USERNAME}"
+          MESSAGE_COUNT=$(echo "$CHANGED_FILES" | grep "^${USER_FOLDER}/.*\.gpg$" | wc -l)
           if [ "$MESSAGE_COUNT" -gt 1 ]; then
-            echo "❌ SECURITY: PR contains multiple message files!"
+            echo "❌ SECURITY: PR contains multiple message files in user folder!"
             echo "Only 1 message per user is allowed."
             exit 1
           fi
-          
-          # Check file ownership - users can only modify their own file
+
+          # Check file ownership - users can only modify their own folder
           echo ""
           echo "🔍 Validating file ownership..."
-          USERNAME="${{ github.event.pull_request.user.login }}"
-          MESSAGE_FILES=$(echo "$CHANGED_FILES" | grep "^messages/.*\.txt$" || true)
-          
+          MESSAGE_FILES=$(echo "$CHANGED_FILES" | grep "^${USER_FOLDER}/.*\.gpg$" || true)
+
           if [ ! -z "$MESSAGE_FILES" ]; then
             while IFS= read -r file; do
               if [ ! -z "$file" ]; then
                 # Extract filename without path and extension
-                FILENAME=$(basename "$file" .txt)
-                
-                # Skip README and EXAMPLE-MESSAGE (anyone can edit these)
-                if [ "$FILENAME" = "README" ] || [ "$FILENAME" = "EXAMPLE-MESSAGE" ]; then
-                  echo "ℹ️ Skipping validation for: $file (public file)"
-                  continue
-                fi
-                
+                FILENAME=$(basename "$file" .gpg)
+
                 # Check if filename matches PR author username
                 if [ "$FILENAME" != "$USERNAME" ]; then
                   echo "❌ SECURITY: You can only modify YOUR OWN message file!"
-                  echo ""
-                  echo "Your username: @$USERNAME"
-                  echo "Expected file: messages/${USERNAME}.txt"
-                  echo "Attempted file: $file (belongs to @$FILENAME)"
-                  echo ""
-                  echo "⚠️ Each user can ONLY create/edit: messages/[YourUsername].txt"
-                  echo "❌ You CANNOT modify other users' files!"
+                  echo "Blocked file: $file"
                   exit 1
                 fi
-                
-                echo "✅ File ownership valid: $file belongs to @$USERNAME"
               fi
             done <<< "$MESSAGE_FILES"
           fi

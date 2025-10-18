@@ -30,7 +30,7 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 ```
 ┌──────────────┐    ┌───────────────┐    ┌──────────────┐    ┌────────────────┐
 │  You Write   │ →  │    GitHub     │ →  │  Wait 10     │ →  │  Auto-Unlock   │
-│  a Message   │    │  Locks It     │    │  Years⏰     │    │  in 2035!🎉   │
+│  a Message   │    │  Locks It     │    │  Years⏰     │    │  in 2035!🎉    │
 └──────────────┘    └───────────────┘    └──────────────┘    └────────────────┘
 ```
 
@@ -251,7 +251,7 @@ At **midnight on January 1, 2035**, GitHub will automatically:
 
 > Imagine reading what 2025-you wrote! How much will you change? 🤯
 
-📖 **[Click Here for Full Instructions: How to Read in 2035](./HOW-TO-READ-2035.md)** 📖
+📖 **[Click Here for Full Instructions: How to Read in 2035](https://github-time-capsule.vercel.app/how-to-read)** 📖
 
 ---
 
@@ -349,7 +349,7 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 | 👥 **Contributors** | [![Contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule?style=flat-square)](../../graphs/contributors) |
 | ⭐ **Stars** | [![Stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule?style=flat-square)](../../stargazers) |
 | 🔀 **Forks** | [![Forks](https://img.shields.io/github/forks/ThanhNguyxn/github-time-capsule?style=flat-square)](../../network/members) |
-| ⏰ **Days Until 2035** | ![Days Until 2035](https://img.shields.io/badge/Countdown-3362%20days-orange?style=flat-square) |
+| ⏰ **Days Until 2035** | ![Days Until 2035](https://img.shields.io/badge/Countdown-3363%20days-orange?style=flat-square) |
 
 > 🤖 **Auto-updated daily** by GitHub Actions | Last update: Every day at 00:00 UTC
 
@@ -444,7 +444,7 @@ With hope,
 
 <br>
 
-## � How to Receive Your Message in 2035
+## 📬 How to Receive Your Message in 2035
 
 **Don't worry about remembering!** We've made it easy:
 
@@ -469,6 +469,76 @@ With hope,
 *Includes: Step-by-step instructions, FAQs, troubleshooting, and multiple access methods*
 
 </div>
+
+## ❓ Common Questions
+
+<details>
+<summary><b>🔒 Is my message safe?</b></summary>
+
+Yes! We use military-grade security (AES-256 encryption). Once locked, it's mathematically impossible to unlock until 2035.
+
+</details>
+
+<details>
+<summary><b>👀 Can I read it before 2035?</b></summary>
+
+No, the locked version is unreadable. But you can keep a copy in your own folder if you want!
+
+</details>
+
+<details>
+<summary><b>❌ What if I make a mistake?</b></summary>
+
+You can edit before clicking "Create pull request". After that (30 seconds), it's locked forever!
+
+</details>
+
+<details>
+<summary><b>📝 Can I send multiple messages?</b></summary>
+
+Only your first message will be locked. This keeps it authentic and special!
+
+</details>
+
+<details>
+<summary><b>🔓 Is my message private?</b></summary>
+
+**Now:** The locked version is public but unreadable (it's gibberish).  
+**2035:** Everyone can read all messages!
+
+</details>
+
+<details>
+<summary><b>💻 Do I need to know coding?</b></summary>
+
+**No!** This is for everyone. Just follow the 4 steps - it's just clicking buttons!
+
+</details>
+
+<details>
+<summary><b>🆓 Is this free?</b></summary>
+
+**Yes!** 100% free. No cost, no ads, no catch. It's a community project!
+
+</details>
+
+<details>
+<summary><b>🌍 Can I write in my language?</b></summary>
+
+**Yes!** Any language works - English, Spanish, Chinese, emoji... whatever you want!
+
+</details>
+
+<details>
+<summary><b>🗑️ Can I delete my message?</b></summary>
+
+Only before it gets locked (within 30 seconds). After that, it's part of history!
+
+</details>
+
+<details>
+<summary><b>📬 How do I read my message in 2035?</b></summary>
+
 
 ---
 
@@ -548,4 +618,3 @@ Want to know how this works technically? Check out our detailed docs:
 *Remember to come back! Set a reminder for January 1, 2035!* 🗓️
 
 </div>
-

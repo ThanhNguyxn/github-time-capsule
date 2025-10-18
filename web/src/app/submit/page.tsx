@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { validation } from '@/lib/validation';
 import AuthButton from '@/components/AuthButton';
@@ -57,6 +57,10 @@ export default function SubmitPage() {
     }
   };
 
+  useEffect(() => {
+    // Removed the redirect logic to allow access without login
+  }, []);
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-900 flex items-center justify-center">
@@ -65,11 +69,7 @@ export default function SubmitPage() {
     );
   }
 
-  // Redirect to home if not authenticated
   if (!session) {
-    if (typeof window !== 'undefined') {
-      router.push('/');
-    }
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-900">
         <header className="container mx-auto px-4 py-6">
@@ -77,24 +77,20 @@ export default function SubmitPage() {
             <Link href="/" className="text-white text-2xl font-bold">
               🕰️ Time Capsule
             </Link>
-            <AuthButton />
           </div>
         </header>
-        <main className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Sign In Required
-          </h1>
-          <p className="text-purple-200 text-xl mb-8">
-            Please sign in with GitHub to submit your message. Redirecting...
-          </p>
-          <AuthButton />
+        <main className="container mx-auto px-4 py-6 text-center">
+          <p className="text-red-300 text-xl mb-4">⚠️ Please log in to submit your message.</p>
+          <div className="flex justify-center">
+            <AuthButton />
+          </div>
         </main>
       </div>
     );
   }
 
   const characterCount = message.length;
-  const maxChars = 10000;
+  const maxChars = 1000000;
   const minChars = 10;
   const isValid = characterCount >= minChars && characterCount <= maxChars;
 
@@ -203,7 +199,12 @@ Write anything you want - this message will be sealed until January 1, 2035!"
               <p className="font-semibold mb-2">🔒 What happens next:</p>
               <ul className="text-sm space-y-1">
                 <li>✅ Your message will be encrypted immediately</li>
-                <li>✅ Saved as: <code className="bg-white/10 px-1 rounded">messages/{session.user?.username}.txt</code></li>
+                <li>
+                  ✅ Saved as:{' '}
+                  <code className="bg-white/10 px-1 rounded">
+                    messages/{session?.user?.username || 'anonymous'}.txt
+                  </code>
+                </li>
                 <li>✅ Sealed until January 1, 2035</li>
                 <li>✅ Nobody can read it (not even you!) until then</li>
               </ul>
