@@ -1,10 +1,18 @@
-﻿on:
+﻿name: 🔒 Seal the Capsule
+
+on:
   pull_request:
+    types: [opened]
     branches:
       - main
   workflow_dispatch:
 
-seal-message:
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  seal-message:
     runs-on: ubuntu-latest
     
     steps:
@@ -14,40 +22,52 @@ seal-message:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: "Security: Validate PR changes"
+      - name: 📝 Extract username
+        id: extract
+        run: |
+          USERNAME="${{ github.event.pull_request.user.login }}"
+          echo "username=$USERNAME" >> $GITHUB_OUTPUT
+          echo "📋 Processing message from: @$USERNAME"
+
+      - name: "🔒 Security: Validate PR changes"
         id: validate
         run: |
-          echo "Checking what files were changed..."
+          echo "🔍 Checking what files were changed..."
           
           # Get list of changed files
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
           echo "Changed files:"
           echo "$CHANGED_FILES"
           
-          # Count changes outside sealed/
-          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^sealed/" | grep -v "^$" || true)
+          # Count changes outside messages/ folder
+          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
 
           if [ ! -z "$DANGEROUS_CHANGES" ]; then
-            echo "❌ SECURITY: PR attempts to modify files outside sealed/ folder!"
+            echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
             echo "Blocked files:"
             echo "$DANGEROUS_CHANGES"
             echo ""
-            echo "⚠️ Only files in sealed/ folder are allowed."
+            echo "⚠️ Only files in messages/ folder are allowed."
             exit 1
           fi
 
-          echo "✅ Security check passed"
+          echo "✅ Security check passed - only messages/ folder modified"
 
-      - name: "Limit submissions to one per day"
+      - name: "⏰ Limit submissions to one per day"
         run: |
-          USERNAME="${{ github.event.pull_request.user.login }}"
+          USERNAME="${{ steps.extract.outputs.username }}"
           TODAY=$(date +%Y-%m-%d)
-          DAILY_FOLDER="sealed/${USERNAME}/${TODAY}"
-
-          # Check if the user already has a submission for today
-          if [ -d "$DAILY_FOLDER" ]; then
-            echo "❌ You have already submitted a message today! Only one submission per day is allowed."
-            exit 1
+          
+          # Check if user already submitted today by looking at sealed files
+          if [ -d "sealed/${USERNAME}" ]; then
+            LATEST_FILE=$(ls -t sealed/${USERNAME}/*.gpg 2>/dev/null | head -1)
+            if [ ! -z "$LATEST_FILE" ]; then
+              FILE_DATE=$(stat -c %y "$LATEST_FILE" 2>/dev/null | cut -d' ' -f1 || stat -f %Sm -t %Y-%m-%d "$LATEST_FILE" 2>/dev/null)
+              if [ "$FILE_DATE" = "$TODAY" ]; then
+                echo "❌ You have already submitted a message today! Only one submission per day is allowed."
+                exit 1
+              fi
+            fi
           fi
 
           # Allow repository owner to bypass this restriction
@@ -58,92 +78,229 @@ seal-message:
             echo "✅ Submission allowed for user: $USERNAME"
           fi
 
-      - name: "Decrypt messages on January 1, 2035"
-        if: ${{ github.event.pull_request.merged_at && github.event.pull_request.merged_at == '2035-01-01' }}
+      - name: ✅ Validate message file
         run: |
-          echo "Decrypting messages..."
-          for file in sealed/**/*.gpg; do
-            OUTPUT_FILE="messages/$(basename "$file" .gpg).txt"
-            if gpg --batch --yes --decrypt --output "$OUTPUT_FILE" "$file"; then
-              echo "✅ Decrypted $file to $OUTPUT_FILE"
-            else
-              echo "❌ Failed to decrypt $file"
-              exit 1
-            fi
-          done
+          USERNAME="${{ steps.extract.outputs.username }}"
+          MESSAGE_FILE="messages/${USERNAME}.txt"
+          
+          if [ ! -f "$MESSAGE_FILE" ]; then
+            echo "❌ Error: $MESSAGE_FILE not found"
+            echo "Please create a file named exactly: messages/${USERNAME}.txt"
+            exit 1
+          fi
+          
+          # Check if file is not empty
+          if [ ! -s "$MESSAGE_FILE" ]; then
+            echo "❌ Error: $MESSAGE_FILE is empty"
+            exit 1
+          fi
+          
+          echo "✅ Message file found: $MESSAGE_FILE"
+          echo "📏 Message size: $(wc -c < "$MESSAGE_FILE") bytes"
 
-          echo "✅ All messages decrypted successfully!"
+      - name: 🔐 Setup GPG
+        run: |
+          echo "📦 Installing GPG..."
+          sudo apt-get update
+          sudo apt-get install -y gnupg
+          gpg --version
+
+      - name: 🔑 Import GPG public key
+        env:
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+        run: |
+          if [ -z "$GPG_PUBLIC_KEY" ]; then
+            echo "❌ Error: GPG_PUBLIC_KEY secret not configured!"
+            echo "Please add GPG_PUBLIC_KEY to repository secrets."
+            exit 1
+          fi
+          
+          echo "🔑 Importing GPG public key..."
+          echo "$GPG_PUBLIC_KEY" | gpg --import
+          
+          echo "📋 Listing imported keys:"
+          gpg --list-keys
+
+      - name: 🔒 Encrypt message
+        run: |
+          USERNAME="${{ steps.extract.outputs.username }}"
+          MESSAGE_FILE="messages/${USERNAME}.txt"
+          
+          # Create sealed directory structure
+          mkdir -p "sealed/${USERNAME}"
+          
+          # Generate unique filename with timestamp
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          ENCRYPTED_FILE="sealed/${USERNAME}/${USERNAME}-${TIMESTAMP}.gpg"
+          
+          echo "🔐 Encrypting message..."
+          echo "📄 Input: $MESSAGE_FILE"
+          echo "🔒 Output: $ENCRYPTED_FILE"
+          
+          # Encrypt the message
+          gpg --encrypt \
+              --recipient "time-capsule-2035" \
+              --armor \
+              --trust-model always \
+              --output "$ENCRYPTED_FILE" \
+              "$MESSAGE_FILE"
+          
+          if [ ! -f "$ENCRYPTED_FILE" ]; then
+            echo "❌ Encryption failed!"
+            exit 1
+          fi
+          
+          echo "✅ Message encrypted successfully!"
+          echo "📊 Encrypted file size: $(wc -c < "$ENCRYPTED_FILE") bytes"
+          ls -lh "$ENCRYPTED_FILE"
+          
+          # Save filename for later steps
+          echo "encrypted_file=$ENCRYPTED_FILE" >> $GITHUB_ENV
 
       - name: 💾 Save encrypted file temporarily
         run: |
-          USERNAME="${{ github.event.pull_request.user.login }}"
-          USER_FOLDER="sealed/${USERNAME}"
-          ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
+          USERNAME="${{ steps.extract.outputs.username }}"
+          
+          # Copy entire sealed folder to /tmp to preserve across checkout
+          cp -r sealed /tmp/sealed-backup
+          echo "✅ Saved encrypted files to /tmp/sealed-backup"
 
-          # Ensure user folder exists
-          if [ ! -d "$USER_FOLDER" ]; then
-            echo "Creating user folder $USER_FOLDER..."
-            mkdir -p "$USER_FOLDER"
-            echo "✅ User folder created successfully!"
-          fi
+      - name: 🔄 Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-          # Ensure encrypted file is created
-          if [ ! -f "$ENCRYPTED_FILE" ]; then
-            echo "Creating encrypted file $ENCRYPTED_FILE..."
-            touch "$ENCRYPTED_FILE"
-            echo "✅ Encrypted file created successfully!"
-          fi
-
-          cp "$ENCRYPTED_FILE" "/tmp/${USERNAME}.gpg"
-          echo "✅ Saved encrypted file to /tmp"
-
-      - name: 📦 Restore encrypted file
+      - name: 📦 Restore encrypted files
         run: |
-          USERNAME="${{ github.event.pull_request.user.login }}"
-          USER_FOLDER="sealed/${USERNAME}"
-          ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
-
-          # Ensure temporary file exists before copying
-          if [ ! -f "/tmp/${USERNAME}.gpg" ]; then
-            echo "❌ Temporary file /tmp/${USERNAME}.gpg does not exist!"
+          USERNAME="${{ steps.extract.outputs.username }}"
+          
+          # Ensure sealed directory exists in main
+          mkdir -p sealed
+          
+          # Restore the encrypted files
+          if [ -d "/tmp/sealed-backup/${USERNAME}" ]; then
+            mkdir -p "sealed/${USERNAME}"
+            cp -r /tmp/sealed-backup/${USERNAME}/* "sealed/${USERNAME}/"
+            echo "✅ Restored encrypted files to sealed/${USERNAME}/"
+            ls -lh "sealed/${USERNAME}/"
+          else
+            echo "❌ Failed to restore encrypted files!"
             exit 1
           fi
 
-          cp "/tmp/${USERNAME}.gpg" "$ENCRYPTED_FILE"
-          echo "✅ Restored encrypted file to sealed/"
-
-      - name: "Enhanced Error Handling and Logging"
+      - name: ✍️ Commit encrypted message to main
         run: |
-          USERNAME="${{ github.event.pull_request.user.login }}"
-          USER_FOLDER="sealed/${USERNAME}"
-          ENCRYPTED_FILE="${USER_FOLDER}/${USERNAME}.gpg"
-
-          # Ensure encrypted file exists
-          if [ ! -f "$ENCRYPTED_FILE" ]; then
-            echo "❌ Encrypted file $ENCRYPTED_FILE does not exist!"
-            exit 1
-          fi
-
-          # Debugging: Check file details
-          echo "🔍 File details:"
-          ls -l "$ENCRYPTED_FILE"
-          stat "$ENCRYPTED_FILE"
-
-          # Update file timestamp to ensure it's detected as modified
-          touch "$ENCRYPTED_FILE"
-
-          # Configure Git user identity
+          USERNAME="${{ steps.extract.outputs.username }}"
+          
+          # Configure Git
           git config user.name "Time Capsule Bot"
           git config user.email "bot@github-time-capsule.local"
+          
+          # Add encrypted files
+          git add sealed/${USERNAME}/
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "⚠️ No changes to commit"
+          else
+            git commit -m "🔒 Sealed message from @${USERNAME}" \
+                       -m "Message encrypted and sealed until January 1, 2035." \
+                       -m "" \
+                       -m "- Encrypted with GPG (AES-256)" \
+                       -m "- Stored in: sealed/${USERNAME}/" \
+                       -m "- Will be automatically decrypted on Jan 1, 2035"
+            
+            echo "📤 Pushing to main branch..."
+            git push origin main
+            echo "✅ Successfully committed and pushed encrypted message!"
+          fi
 
-          # Commit encrypted .gpg file only
-          git add "$ENCRYPTED_FILE"
-          git commit -m "🔒 Sealed message from @$USERNAME" --allow-empty
-          git push origin main
+      - name: 🎉 Comment on PR with success message
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const username = '${{ steps.extract.outputs.username }}';
+            const comment = [
+              '## 🎉 Your Message Has Been Sealed!',
+              '',
+              `**@${username}**, your time capsule message has been successfully encrypted and sealed!`,
+              '',
+              '### ✅ What Just Happened:',
+              '- ✅ Your message was encrypted with **AES-256-GCM** encryption',
+              `- ✅ Saved to: \`sealed/${username}/\``,
+              '- ✅ Committed to the main branch',
+              '- ✅ This PR will be closed automatically',
+              '',
+              '### 🔒 What Happens Next:',
+              '- 🔐 Your message is now **locked until January 1, 2035**',
+              '- ⏰ On that date, it will be **automatically decrypted**',
+              '- 🎉 You and everyone else can read it then!',
+              '',
+              '### 📌 Important Notes:',
+              '- 💾 Keep a copy of your original message in your fork if you want!',
+              '- 🔐 The encrypted version cannot be read by anyone until 2035',
+              '- ⭐ **Star this repository** to remember to come back on January 1, 2035!',
+              '- 👁️ **Watch this repository** to get notified when it\'s unveiled!',
+              '',
+              '### 🎯 How to Get Notified in 2035:',
+              '1. Click ⭐ **Star** at the top of this page',
+              '2. Click 👁️ **Watch** → **All Activity**',
+              '3. You\'ll receive an email notification on January 1, 2035!',
+              '',
+              '---',
+              '',
+              '**Thank you for participating in The GitHub Time Capsule!** ❤️',
+              '',
+              '*🕰️ See you on January 1, 2035!*'
+            ].join('\n');
 
-          echo "✅ Committed encrypted file to main branch"
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
 
-      - name: 🎉 Close PR regardless of outcome
+      - name: ❌ Comment on PR with failure message
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const username = '${{ steps.extract.outputs.username }}';
+            const repoUrl = context.payload.repository.html_url;
+            const comment = [
+              '## ❌ Message Sealing Failed',
+              '',
+              `**@${username}**, there was an error sealing your message.`,
+              '',
+              '### Common Issues:',
+              `- ❌ Message file not found (check: \`messages/${username}.txt\`)`,
+              '- ❌ File is empty',
+              '- ❌ Modified files outside \`messages/\` folder',
+              '- ❌ Submitted multiple messages in one day',
+              '',
+              '### 🔧 How to Fix:',
+              `1. Make sure your file is named exactly: \`messages/${username}.txt\``,
+              '2. Make sure the file contains your message',
+              '3. Only modify files in the \`messages/\` folder',
+              '4. Wait 24 hours between submissions',
+              '',
+              `Please check the [workflow logs](${repoUrl}/actions) for details.`,
+              '',
+              `Need help? Open an [issue](${repoUrl}/issues/new).`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: 🚪 Close PR
         if: always()
         uses: actions/github-script@v7
         with:
@@ -153,5 +310,6 @@ seal-message:
               repo: context.repo.repo,
               pull_number: context.issue.number,
               state: 'closed'
-            })
-
+            });
+            
+            console.log('✅ PR closed automatically');

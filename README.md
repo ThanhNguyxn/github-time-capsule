@@ -381,7 +381,7 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 
 <br>
 
-## �🔧 Are You a Developer?
+## 🔧 Are You a Developer?
 
 Want to know how this works technically? Check out our detailed docs:
 

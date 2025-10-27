@@ -43,10 +43,16 @@ Follow the detailed guide in [OAUTH-SETUP.md](./OAUTH-SETUP.md) to create a GitH
 
 ### 3. Configure Environment Variables
 
-Create a `.env.local` file:
+Copy the example file and fill in your values:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Then edit `.env.local` with your actual credentials:
 
 ```env
-# GitHub OAuth
+# GitHub OAuth (Get from https://github.com/settings/developers)
 GITHUB_CLIENT_ID=your_client_id_here
 GITHUB_CLIENT_SECRET=your_client_secret_here
 
@@ -58,9 +64,18 @@ NEXTAUTH_SECRET=your_random_secret_min_32_chars
 GITHUB_REPO_OWNER=ThanhNguyxn
 GITHUB_REPO_NAME=github-time-capsule
 
-# Rate Limiting
+# Rate Limiting (Optional)
 RATE_LIMIT_MAX_REQUESTS=5
 RATE_LIMIT_WINDOW_MS=60000
+```
+
+**Generate NEXTAUTH_SECRET:**
+```bash
+# Option 1: OpenSSL
+openssl rand -base64 32
+
+# Option 2: Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
 ### 4. Run Development Server

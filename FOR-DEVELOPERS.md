@@ -164,16 +164,18 @@ GitHub Secrets (Repository Settings → Secrets):
 # Generate 4096-bit RSA key pair
 gpg --full-generate-key
 # Select: RSA and RSA, 4096 bits, expires: never
+# Name: time-capsule-2035
+# Email: thanhnguyentuan2007@gmail.com
 
 # Export public key
-gpg --armor --export "GitHub Time Capsule" > public_key.asc
+gpg --armor --export "time-capsule-2035" > public_key.asc
 
 # Export private key
-gpg --armor --export-secret-keys "GitHub Time Capsule" > private_key.asc
+gpg --armor --export-secret-keys "time-capsule-2035" > private_key.asc
 
-# Store in GitHub Secrets (without newlines)
-cat public_key.asc | tr -d '\n' | pbcopy   # macOS
-cat public_key.asc | tr -d '\n' | xclip    # Linux
+# Store in GitHub Secrets (copy entire file contents, including headers)
+cat public_key.asc   # Copy this to GPG_PUBLIC_KEY secret
+cat private_key.asc  # Copy this to GPG_PRIVATE_KEY secret
 ```
 
 ---
@@ -263,7 +265,7 @@ jobs:
       - name: ✍️ Commit encrypted message to main
         run: |
           git config user.name "Time Capsule Bot"
-          git config user.email "thanhnguyentuan2007@gmail.com"
+          git config user.email "bot@timecapsule.dev"
           git add "sealed/${USERNAME}.txt.gpg"
           git commit -m "🔒 Sealed message from @${USERNAME}"
           git push origin main
@@ -433,7 +435,7 @@ jobs:
         run: |
           rm passphrase.txt  # Don't commit this one
           git config user.name "Time Capsule Bot"
-          git config user.email "thanhnguyentuan2007@gmail.com"
+          git config user.email "bot@timecapsule.dev"
           git add decrypted-messages/ STATISTICS.md DECRYPTION_KEY.asc PASSPHRASE.txt
           git commit -m "🎆 Unveiling: All $TOTAL_MESSAGES messages decrypted!"
           git push origin main
