@@ -1,0 +1,19 @@
+🧪 Test Message - Workflow Validation
+
+This is a test message to verify the seal-the-capsule workflow is working correctly.
+
+Date: October 27, 2025
+Purpose: Testing GPG encryption and workflow automation
+Expected Result: Message should be encrypted and saved to sealed/ThanhNguyxn/
+
+---
+
+🔒 If you're reading this in encrypted form, the workflow worked!
+🎉 If you're reading this on January 1, 2035 - Welcome to the future!
+
+Test completed by: AI Assistant
+For: ThanhNguyxn
+Project: GitHub Time Capsule
+
+✨ See you in 2035! ✨
+
