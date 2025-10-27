@@ -52,9 +52,9 @@ Write a message today, and GitHub will **automatically lock it**. On **January 1
 
 ---
 
-## 🌐 Use Our Web Interface 
+## 🌐 Use Our Web Interface (RECOMMENDED) 
 
-### 🎨 **For Everyone**
+### 🎨 **For Everyone - The Safe & Easy Way**
 
 We've built a beautiful web interface so **anyone** can participate without knowing Git or GitHub!
 
@@ -64,6 +64,7 @@ We've built a beautiful web interface so **anyone** can participate without know
 - 👀 **Live Preview** - See your message before sealing
 - 🎨 **Beautiful UI** - Modern, easy-to-use interface
 - 🤖 **100% Automated** - We handle all the GitHub magic
+- 🔒 **Private & Secure** - Your message is encrypted BEFORE being uploaded (never visible in plain text!)
 
 ### 🚀 How to Use:
 
@@ -72,7 +73,9 @@ We've built a beautiful web interface so **anyone** can participate without know
 3. **Write your message** - Use the simple form
 4. **Click Submit** - Done! Your message is sealed
 
-> 💡 **Perfect for:** Everyone who wants the easiest way to participate without learning GitHub!
+> 💡 **RECOMMENDED:** Use the web interface for maximum privacy! Your message is encrypted BEFORE uploading, so it's never visible in plain text on GitHub.
+
+> ⚠️ **Note:** If you submit via pull request manually, your message will be visible in the PR before encryption. Use the web interface for private messages!
 
 ---
 

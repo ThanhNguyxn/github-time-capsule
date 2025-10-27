@@ -148,25 +148,45 @@ export async function POST(request: NextRequest) {
       branch: branchName,
     });
 
-    // Check rate limit (1 submission per day, except for the repository owner)
+    // Check rate limit (1 submission per 24 hours, except for the repository owner)
     if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
-      const today = new Date().toISOString().split('T')[0];
-      const { data: existingFiles } = await octokit.repos.getContent({
-        owner: userRepoOwner,
-        repo,
-        path: sealedFolder,
-        ref: branchName,
-      }).catch(() => ({ data: [] })); // If folder doesn't exist, initialize as empty
+      try {
+        // Get all files in sealed folder
+        const { data: existingFiles } = await octokit.repos.getContent({
+          owner: userRepoOwner,
+          repo,
+          path: sealedFolder,
+          ref: branchName,
+        }).catch(() => ({ data: [] }));
 
-      const recentFile = Array.isArray(existingFiles)
-        ? existingFiles.find((file: any) => file.name.startsWith(session.user.username) && file.name.includes(today))
-        : undefined;
+        if (Array.isArray(existingFiles) && existingFiles.length > 0) {
+          // Get the most recent commit for this folder
+          const { data: commits } = await octokit.repos.listCommits({
+            owner: userRepoOwner,
+            repo,
+            path: sealedFolder,
+            per_page: 1,
+          });
 
-      if (recentFile) {
-        return NextResponse.json(
-          { error: 'You can only submit one message per day.' },
-          { status: 429, headers: securityHeaders }
-        );
+          if (commits.length > 0) {
+            const lastCommitTime = new Date(commits[0].commit.author?.date || 0).getTime();
+            const currentTime = Date.now();
+            const hoursSinceLastSubmit = (currentTime - lastCommitTime) / (1000 * 60 * 60);
+
+            if (hoursSinceLastSubmit < 24) {
+              const hoursRemaining = Math.ceil(24 - hoursSinceLastSubmit);
+              return NextResponse.json(
+                { 
+                  error: `Rate limit: You submitted ${Math.floor(hoursSinceLastSubmit)} hours ago. Please wait ${hoursRemaining} more hours.` 
+                },
+                { status: 429, headers: securityHeaders }
+              );
+            }
+          }
+        }
+      } catch (error) {
+        // If folder doesn't exist or error checking, allow submission
+        console.log('Rate limit check skipped (folder does not exist or error)');
       }
     }
 

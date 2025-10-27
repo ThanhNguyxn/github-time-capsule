@@ -53,30 +53,40 @@ jobs:
 
           echo "✅ Security check passed - only messages/ folder modified"
 
-      - name: "⏰ Limit submissions to one per day"
+      - name: "⏰ Limit submissions (1 per 24 hours)"
         run: |
           USERNAME="${{ steps.extract.outputs.username }}"
-          TODAY=$(date +%Y-%m-%d)
+          REPO_OWNER="${{ github.repository_owner }}"
           
-          # Check if user already submitted today by looking at sealed files
+          # Allow repository owner to bypass rate limiting (for testing)
+          if [ "$USERNAME" = "$REPO_OWNER" ]; then
+            echo "✅ Repository owner ($USERNAME) - rate limit bypassed for testing"
+            exit 0
+          fi
+          
+          # Check if user has submitted in the last 24 hours
           if [ -d "sealed/${USERNAME}" ]; then
             LATEST_FILE=$(ls -t sealed/${USERNAME}/*.gpg 2>/dev/null | head -1)
             if [ ! -z "$LATEST_FILE" ]; then
-              FILE_DATE=$(stat -c %y "$LATEST_FILE" 2>/dev/null | cut -d' ' -f1 || stat -f %Sm -t %Y-%m-%d "$LATEST_FILE" 2>/dev/null)
-              if [ "$FILE_DATE" = "$TODAY" ]; then
-                echo "❌ You have already submitted a message today! Only one submission per day is allowed."
+              # Get file timestamp (seconds since epoch)
+              FILE_TIME=$(stat -c %Y "$LATEST_FILE" 2>/dev/null || stat -f %m "$LATEST_FILE" 2>/dev/null)
+              CURRENT_TIME=$(date +%s)
+              TIME_DIFF=$((CURRENT_TIME - FILE_TIME))
+              HOURS_DIFF=$((TIME_DIFF / 3600))
+              
+              echo "⏰ Last submission: $HOURS_DIFF hours ago"
+              
+              if [ $TIME_DIFF -lt 86400 ]; then
+                HOURS_REMAINING=$((24 - HOURS_DIFF))
+                echo "❌ Rate limit: You submitted a message $HOURS_DIFF hours ago."
+                echo "⏰ Please wait $HOURS_REMAINING more hours before submitting again."
+                echo "💡 You can submit once every 24 hours."
                 exit 1
               fi
             fi
           fi
-
-          # Allow repository owner to bypass this restriction
-          REPO_OWNER="${{ github.repository_owner }}"
-          if [ "$USERNAME" = "$REPO_OWNER" ]; then
-            echo "✅ Repository owner is allowed multiple submissions."
-          else
-            echo "✅ Submission allowed for user: $USERNAME"
-          fi
+          
+          echo "✅ Rate limit check passed - submission allowed"
 
       - name: ✅ Validate message file
         run: |
