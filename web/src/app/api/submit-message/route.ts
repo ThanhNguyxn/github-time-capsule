@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       branch: branchName,
     });
 
-    // Check rate limit (1 submission per 24 hours, except for the repository owner)
+    // Check rate limit (1 submission per day UTC, except for the repository owner)
     if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
       try {
         // Get all files in sealed folder
@@ -169,15 +169,25 @@ export async function POST(request: NextRequest) {
           });
 
           if (commits.length > 0) {
-            const lastCommitTime = new Date(commits[0].commit.author?.date || 0).getTime();
-            const currentTime = Date.now();
-            const hoursSinceLastSubmit = (currentTime - lastCommitTime) / (1000 * 60 * 60);
+            // Get today's date in UTC
+            const now = new Date();
+            const todayUTC = now.toISOString().split('T')[0]; // YYYY-MM-DD in UTC
+            
+            // Get last commit date in UTC
+            const lastCommitDate = new Date(commits[0].commit.author?.date || 0);
+            const lastSubmitDateUTC = lastCommitDate.toISOString().split('T')[0];
 
-            if (hoursSinceLastSubmit < 24) {
-              const hoursRemaining = Math.ceil(24 - hoursSinceLastSubmit);
+            // Check if already submitted today (same UTC date)
+            if (lastSubmitDateUTC === todayUTC) {
+              // Calculate time until next day UTC
+              const tomorrow = new Date(now);
+              tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+              tomorrow.setUTCHours(0, 0, 0, 0);
+              const hoursUntilReset = Math.ceil((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60));
+
               return NextResponse.json(
                 { 
-                  error: `Rate limit: You submitted ${Math.floor(hoursSinceLastSubmit)} hours ago. Please wait ${hoursRemaining} more hours.` 
+                  error: `Rate limit: You already submitted today (UTC). Resets at 00:00 UTC (in ${hoursUntilReset}h). One message per day (UTC timezone).` 
                 },
                 { status: 429, headers: securityHeaders }
               );

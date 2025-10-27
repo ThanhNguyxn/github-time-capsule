@@ -132,7 +132,7 @@ You can edit before clicking "Create pull request". After that (30 seconds), it'
 <details>
 <summary><b>📝 Can I send multiple messages?</b></summary>
 
-Only your first message will be locked. This keeps it authentic and special!
+Yes! You can submit **one message per day (UTC timezone)**. The limit resets at **00:00 UTC** every day (same time as our statistics update).
 
 </details>
 
@@ -336,7 +336,7 @@ You can edit before clicking "Create pull request". After that (30 seconds), it'
 <details>
 <summary><b>📝 Can I send multiple messages?</b></summary>
 
-Only your first message will be locked. This keeps it authentic and special!
+Yes! You can submit **one message per day (UTC timezone)**. The limit resets at **00:00 UTC** every day (same time as our statistics update).
 
 </details>
 
