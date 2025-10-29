@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   seal-message:
@@ -277,6 +278,8 @@ EOF
         uses: actions/github-script@v7
         with:
           script: |
+            console.log('Attempting to comment on PR...');
+            console.log('PR number:', context.issue.number);
             const username = '${{ steps.extract.outputs.username }}';
             const comment = [
               '## 🎉 Your Message Has Been Sealed!',
@@ -312,18 +315,22 @@ EOF
               '*🕰️ See you on January 1, 2035!*'
             ].join('\n');
 
-            await github.rest.issues.createComment({
+            const result = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: comment
             });
+            console.log('✅ Comment posted successfully!');
+            console.log('Comment ID:', result.data.id);
 
       - name: ❌ Comment on PR with failure message
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
+            console.log('Attempting to post failure comment...');
+            console.log('PR number:', context.issue.number);
             const username = '${{ steps.extract.outputs.username }}';
             const repoUrl = context.payload.repository.html_url;
             const comment = [
@@ -348,18 +355,25 @@ EOF
               `Need help? Open an [issue](${repoUrl}/issues/new).`
             ].join('\n');
 
-            await github.rest.issues.createComment({
+            const result = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: comment
             });
+            console.log('✅ Failure comment posted successfully!');
+            console.log('Comment ID:', result.data.id);
 
       - name: 🚪 Close PR
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
+            // Wait 2 seconds to ensure comment is posted first
+            console.log('Waiting 2 seconds before closing PR...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            console.log('Closing PR #' + context.issue.number);
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
