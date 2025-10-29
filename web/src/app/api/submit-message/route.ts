@@ -76,39 +76,30 @@ export async function POST(request: NextRequest) {
     const owner = config.github.repoOwner;
     const repo = config.github.repoName;
     const branchName = `add-message-${session.user.username}-${Date.now()}`;
-    const isRepoOwner = session.user.username === owner;
 
-    // Step 1: Determine where to create the branch
-    let userRepoOwner = session.user.username;
-    
-    if (isRepoOwner) {
-      // User is repo owner - create branch directly in main repo
-      console.log('User is repo owner - creating branch in main repo');
-      userRepoOwner = owner;
-    } else {
-      // User is not owner - fork the repository (if not already forked)
-      console.log('User is not owner - checking for fork');
-      try {
-        await octokit.repos.get({
-          owner: session.user.username,
-          repo: repo,
+    // Step 1: Fork the repository (if not already forked)
+    // NOTE: Always use fork, even for repo owner, to ensure pull_request_target triggers
+    const userRepoOwner = session.user.username;
+    try {
+      await octokit.repos.get({
+        owner: session.user.username,
+        repo: repo,
+      });
+      console.log('Fork already exists');
+    } catch (error: any) {
+      if (error.status === 404) {
+        // Repo doesn't exist, create fork
+        console.log('Creating fork...');
+        await octokit.repos.createFork({
+          owner,
+          repo,
         });
-        console.log('Fork already exists');
-      } catch (error: any) {
-        if (error.status === 404) {
-          // Repo doesn't exist, create fork
-          console.log('Creating fork...');
-          await octokit.repos.createFork({
-            owner,
-            repo,
-          });
-          
-          // Wait a bit for fork to be created
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          console.log('Fork created successfully');
-        } else {
-          throw error;
-        }
+        
+        // Wait a bit for fork to be created
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        console.log('Fork created successfully');
+      } else {
+        throw error;
       }
     }
 
@@ -145,13 +136,13 @@ export async function POST(request: NextRequest) {
     // Note: Rate limit (1 message per day UTC) is enforced by the GitHub Actions workflow
     // The workflow checks the sealed folder in the main repository
 
-    // Step 5: Create pull request
-    const prHead = isRepoOwner ? branchName : `${userRepoOwner}:${branchName}`;
+    // Step 5: Create pull request from fork to original repo
+    // Always use fork format to ensure pull_request_target triggers
     const { data: prData } = await octokit.pulls.create({
       owner,
       repo,
       title: `Time Capsule Message from @${session.user.username}`,
-      head: prHead,
+      head: `${userRepoOwner}:${branchName}`,  // Fork PR format
       base: 'main',
       body: `🕰️ **Time Capsule Message Submission**
 
@@ -176,42 +167,8 @@ It will be automatically encrypted and sealed by GitHub Actions.
 *Automated submission • Do not edit this PR*`,
     });
 
-    // Step 6: Trigger workflow_dispatch to seal the message
-    // This is necessary because PRs created via API don't auto-trigger workflows
-    try {
-      await octokit.actions.createWorkflowDispatch({
-        owner,
-        repo,
-        workflow_id: 'seal-the-capsule.yml',
-        ref: 'main',
-        inputs: {
-          username: session.user.username,
-          pr_number: prData.number.toString(),
-          branch: branchName,
-        },
-      });
-      console.log(`✅ Triggered workflow for PR #${prData.number}`);
-    } catch (dispatchError) {
-      console.error('⚠️  Failed to trigger workflow:', dispatchError);
-      // Try repository_dispatch as fallback
-      try {
-        await octokit.repos.createDispatchEvent({
-          owner,
-          repo,
-          event_type: 'seal-message',
-          client_payload: {
-            username: session.user.username,
-            pr_number: prData.number,
-            branch: branchName,
-          },
-        });
-        console.log(`✅ Dispatched via repository_dispatch for PR #${prData.number}`);
-      } catch (fallbackError) {
-        console.error('⚠️  Both dispatch methods failed:', fallbackError);
-      }
-    }
-
     // Success!
+    // The PR will automatically trigger the seal-the-capsule workflow via pull_request_target event
     return NextResponse.json(
       {
         success: true,

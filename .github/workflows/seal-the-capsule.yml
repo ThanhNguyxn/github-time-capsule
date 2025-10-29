@@ -1,33 +1,11 @@
 ﻿name: 🔒 Seal the Capsule
 
 on:
-  # Trigger via workflow_dispatch for programmatic submissions
-  workflow_dispatch:
-    inputs:
-      username:
-        description: 'GitHub username'
-        required: true
-      pr_number:
-        description: 'Pull request number'
-        required: true
-      branch:
-        description: 'Branch name'
-        required: true
-  # Backup: Trigger via repository_dispatch
-  repository_dispatch:
-    types: [seal-message]
-  # Trigger on push to message submission branches
-  push:
-    branches:
-      - 'add-message-**'
   pull_request_target:
     types: [opened]
     branches:
       - main
-  pull_request:
-    types: [opened]
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -45,81 +23,36 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
 
-      - name: 📝 Extract username and PR number
+      - name: 📝 Extract username
         id: extract
         run: |
-          echo "🔍 DEBUG: Event name: ${{ github.event_name }}"
-          echo "🔍 DEBUG: Ref: ${{ github.ref }}"
-          echo "🔍 DEBUG: Ref name: ${{ github.ref_name }}"
-          
-          # Handle different event types
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # Get from workflow inputs
-            USERNAME="${{ github.event.inputs.username }}"
-            PR_NUMBER="${{ github.event.inputs.pr_number }}"
-            BRANCH_NAME="${{ github.event.inputs.branch }}"
-            echo "📋 Got from workflow_dispatch: username=$USERNAME, PR=$PR_NUMBER, branch=$BRANCH_NAME"
-          elif [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            # Get from dispatch payload
-            USERNAME="${{ github.event.client_payload.username }}"
-            PR_NUMBER="${{ github.event.client_payload.pr_number }}"
-            BRANCH_NAME="${{ github.event.client_payload.branch }}"
-            echo "📋 Got from repository_dispatch: username=$USERNAME, PR=$PR_NUMBER, branch=$BRANCH_NAME"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            # Extract from branch name
-            BRANCH_NAME="${{ github.ref_name }}"
-            echo "📋 Branch name: $BRANCH_NAME"
-            USERNAME=$(echo "$BRANCH_NAME" | sed -E 's/add-message-([^-]+)-.*/\1/')
-            echo "📋 Extracted username from branch: $USERNAME"
-          else
-            # For PR events
-            USERNAME="${{ github.event.pull_request.user.login }}"
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            echo "📋 Got from PR: username=$USERNAME, PR=$PR_NUMBER"
-          fi
-          
-          if [ -z "$USERNAME" ]; then
-            echo "❌ ERROR: Could not extract username!"
-            exit 1
-          fi
-          
+          USERNAME="${{ github.event.pull_request.user.login }}"
           echo "username=$USERNAME" >> $GITHUB_OUTPUT
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "📋 Processing message from: @$USERNAME (PR #$PR_NUMBER)"
+          echo "📋 Processing message from: @$USERNAME"
 
       - name: "🔒 Security: Validate PR changes"
         id: validate
         run: |
           echo "🔍 Checking what files were changed..."
           
-          # Fetch main branch for comparison
-          git fetch origin main:refs/remotes/origin/main || true
-          
           # Get list of changed files
-          CHANGED_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1 || echo "messages/")
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
           echo "Changed files:"
           echo "$CHANGED_FILES"
           
-          # For message submission branches, only check if messages/ folder is touched
-          if [[ "${GITHUB_REF_NAME}" == add-message-* ]]; then
-            echo "✅ Message submission branch detected - skipping strict validation"
-            echo "📝 Expecting changes in messages/ folder"
-          else
-            # Count changes outside messages/ folder
-            DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
+          # Count changes outside messages/ folder
+          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
 
-            if [ ! -z "$DANGEROUS_CHANGES" ]; then
-              echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
-              echo "Blocked files:"
-              echo "$DANGEROUS_CHANGES"
-              echo ""
-              echo "⚠️ Only files in messages/ folder are allowed."
-              exit 1
-            fi
+          if [ ! -z "$DANGEROUS_CHANGES" ]; then
+            echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
+            echo "Blocked files:"
+            echo "$DANGEROUS_CHANGES"
+            echo ""
+            echo "⚠️ Only files in messages/ folder are allowed."
+            exit 1
           fi
 
-          echo "✅ Security check passed"
+          echo "✅ Security check passed - only messages/ folder modified"
 
       - name: "⏰ Rate Limit: 1 message per day (UTC)"
         run: |
@@ -346,31 +279,8 @@ EOF
         with:
           script: |
             console.log('Attempting to comment on PR...');
+            console.log('PR number:', context.issue.number);
             const username = '${{ steps.extract.outputs.username }}';
-            let prNumber = '${{ steps.extract.outputs.pr_number }}';
-            
-            // If PR number not in outputs, try to find it
-            if (!prNumber || prNumber === '') {
-              if (context.payload.pull_request) {
-                prNumber = context.payload.pull_request.number;
-              } else {
-                const branch = '${{ steps.extract.outputs.branch }}' || context.ref.replace('refs/heads/', '');
-                const { data: prs } = await github.rest.pulls.list({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  head: `${context.repo.owner}:${branch}`,
-                  state: 'open'
-                });
-                if (prs.length > 0) {
-                  prNumber = prs[0].number;
-                } else {
-                  console.log('⚠️  No open PR found');
-                  return;
-                }
-              }
-            }
-            
-            console.log('PR number:', prNumber);
             const comment = [
               '## 🎉 Your Message Has Been Sealed!',
               '',
@@ -408,7 +318,7 @@ EOF
             const result = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prNumber,
+              issue_number: context.issue.number,
               body: comment
             });
             console.log('✅ Comment posted successfully!');
@@ -420,31 +330,9 @@ EOF
         with:
           script: |
             console.log('Attempting to post failure comment...');
+            console.log('PR number:', context.issue.number);
             const username = '${{ steps.extract.outputs.username }}';
             const repoUrl = context.payload.repository.html_url;
-            
-            // Find PR number
-            let prNumber;
-            if (context.payload.pull_request) {
-              prNumber = context.payload.pull_request.number;
-            } else {
-              // For push events, find PR by branch name
-              const branch = context.ref.replace('refs/heads/', '');
-              const { data: prs } = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                head: `${context.repo.owner}:${branch}`,
-                state: 'open'
-              });
-              if (prs.length > 0) {
-                prNumber = prs[0].number;
-              } else {
-                console.log('⚠️  No open PR found for this branch');
-                return;
-              }
-            }
-            
-            console.log('PR number:', prNumber);
             const comment = [
               '## ❌ Message Sealing Failed',
               '',
@@ -470,7 +358,7 @@ EOF
             const result = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prNumber,
+              issue_number: context.issue.number,
               body: comment
             });
             console.log('✅ Failure comment posted successfully!');
@@ -481,36 +369,15 @@ EOF
         uses: actions/github-script@v7
         with:
           script: |
-            // Find PR number
-            let prNumber;
-            if (context.payload.pull_request) {
-              prNumber = context.payload.pull_request.number;
-            } else {
-              // For push events, find PR by branch name
-              const branch = context.ref.replace('refs/heads/', '');
-              const { data: prs } = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                head: `${context.repo.owner}:${branch}`,
-                state: 'open'
-              });
-              if (prs.length > 0) {
-                prNumber = prs[0].number;
-              } else {
-                console.log('⚠️  No open PR found for this branch - skipping close');
-                return;
-              }
-            }
-            
             // Wait 2 seconds to ensure comment is posted first
             console.log('Waiting 2 seconds before closing PR...');
             await new Promise(resolve => setTimeout(resolve, 2000));
             
-            console.log('Closing PR #' + prNumber);
+            console.log('Closing PR #' + context.issue.number);
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: prNumber,
+              pull_number: context.issue.number,
               state: 'closed'
             });
             
