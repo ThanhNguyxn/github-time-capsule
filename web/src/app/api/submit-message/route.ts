@@ -77,50 +77,34 @@ export async function POST(request: NextRequest) {
     const repo = config.github.repoName;
     const branchName = `add-message-${session.user.username}-${Date.now()}`;
 
-    // Step 1: Fork the repository (if not already forked)
-    const userRepoOwner = session.user.username;
-    try {
-      await octokit.repos.get({
-        owner: session.user.username,
-        repo: repo,
-      });
-    } catch (error: any) {
-      if (error.status === 404) {
-        // Repo doesn't exist, create fork
-        await octokit.repos.createFork({
-          owner,
-          repo,
-        });
-        
-        // Wait a bit for fork to be created
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      } else {
-        throw error;
-      }
-    }
+    // Use a bot token with write access to create branches directly in main repo
+    // This avoids fork PR issues with GitHub Actions
+    const botOctokit = new Octokit({
+      auth: process.env.GITHUB_BOT_TOKEN || session.accessToken,
+    });
 
-    // Step 2: Get the default branch SHA
-    const { data: refData } = await octokit.git.getRef({
-      owner: userRepoOwner,
+    // Step 1: Get the default branch SHA from main repo
+    const { data: refData } = await botOctokit.git.getRef({
+      owner,
       repo,
       ref: 'heads/main',
     });
     const mainSha = refData.object.sha;
 
-    // Step 3: Create a new branch
-    await octokit.git.createRef({
-      owner: userRepoOwner,
+    // Step 2: Create a new branch in main repo (not fork)
+    await botOctokit.git.createRef({
+      owner,
       repo,
       ref: `refs/heads/${branchName}`,
       sha: mainSha,
     });
 
-    // Save the obfuscated message in the messages folder
+    // Step 3: Save the obfuscated message in the messages folder
     // This prevents the message from being visible in PR diff
     // The workflow will deobfuscate, encrypt with GPG, and move to sealed/ folder
     const messageFileName = `messages/${session.user.username}.txt`;
-    await octokit.repos.createOrUpdateFileContents({
-      owner: userRepoOwner,
+    await botOctokit.repos.createOrUpdateFileContents({
+      owner,
       repo,
       path: messageFileName,
       message: `Add obfuscated message from ${session.user.username}`,
@@ -132,12 +116,12 @@ export async function POST(request: NextRequest) {
     // Note: Rate limit (1 message per day UTC) is enforced by the GitHub Actions workflow
     // The workflow checks the sealed folder in the main repository
 
-    // Step 5: Create pull request to original repo
-    const { data: prData } = await octokit.pulls.create({
+    // Step 4: Create pull request in same repo (not from fork)
+    const { data: prData } = await botOctokit.pulls.create({
       owner,
       repo,
       title: `Time Capsule Message from @${session.user.username}`,
-      head: `${userRepoOwner}:${branchName}`,
+      head: branchName,  // Just branch name, not user:branch (same repo)
       base: 'main',
       body: `🕰️ **Time Capsule Message Submission**
 
