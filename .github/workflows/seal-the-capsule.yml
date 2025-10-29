@@ -1,6 +1,9 @@
 ﻿name: 🔒 Seal the Capsule
 
 on:
+  # Trigger via repository_dispatch for programmatic submissions
+  repository_dispatch:
+    types: [seal-message]
   # Trigger on push to message submission branches
   push:
     branches:
@@ -31,25 +34,31 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
 
-      - name: 📝 Extract username
+      - name: 📝 Extract username and PR number
         id: extract
         run: |
           echo "🔍 DEBUG: Event name: ${{ github.event_name }}"
           echo "🔍 DEBUG: Ref: ${{ github.ref }}"
           echo "🔍 DEBUG: Ref name: ${{ github.ref_name }}"
           
-          # For push events, extract username from branch name
-          # Branch format: add-message-{username}-{timestamp}
-          if [ "${{ github.event_name }}" = "push" ]; then
+          # Handle different event types
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            # Get from dispatch payload
+            USERNAME="${{ github.event.client_payload.username }}"
+            PR_NUMBER="${{ github.event.client_payload.pr_number }}"
+            BRANCH_NAME="${{ github.event.client_payload.branch }}"
+            echo "📋 Got from dispatch: username=$USERNAME, PR=$PR_NUMBER, branch=$BRANCH_NAME"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            # Extract from branch name
             BRANCH_NAME="${{ github.ref_name }}"
             echo "📋 Branch name: $BRANCH_NAME"
-            # Extract username from branch name (format: add-message-USERNAME-TIMESTAMP)
             USERNAME=$(echo "$BRANCH_NAME" | sed -E 's/add-message-([^-]+)-.*/\1/')
             echo "📋 Extracted username from branch: $USERNAME"
           else
-            # For PR events, get from pull_request context
+            # For PR events
             USERNAME="${{ github.event.pull_request.user.login }}"
-            echo "📋 Got username from PR: $USERNAME"
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            echo "📋 Got from PR: username=$USERNAME, PR=$PR_NUMBER"
           fi
           
           if [ -z "$USERNAME" ]; then
@@ -58,7 +67,9 @@ jobs:
           fi
           
           echo "username=$USERNAME" >> $GITHUB_OUTPUT
-          echo "📋 Processing message from: @$USERNAME"
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "📋 Processing message from: @$USERNAME (PR #$PR_NUMBER)"
 
       - name: "🔒 Security: Validate PR changes"
         id: validate
@@ -319,25 +330,26 @@ EOF
           script: |
             console.log('Attempting to comment on PR...');
             const username = '${{ steps.extract.outputs.username }}';
+            let prNumber = '${{ steps.extract.outputs.pr_number }}';
             
-            // Find PR number
-            let prNumber;
-            if (context.payload.pull_request) {
-              prNumber = context.payload.pull_request.number;
-            } else {
-              // For push events, find PR by branch name
-              const branch = context.ref.replace('refs/heads/', '');
-              const { data: prs } = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                head: `${context.repo.owner}:${branch}`,
-                state: 'open'
-              });
-              if (prs.length > 0) {
-                prNumber = prs[0].number;
+            // If PR number not in outputs, try to find it
+            if (!prNumber || prNumber === '') {
+              if (context.payload.pull_request) {
+                prNumber = context.payload.pull_request.number;
               } else {
-                console.log('⚠️  No open PR found for this branch');
-                return;
+                const branch = '${{ steps.extract.outputs.branch }}' || context.ref.replace('refs/heads/', '');
+                const { data: prs } = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  head: `${context.repo.owner}:${branch}`,
+                  state: 'open'
+                });
+                if (prs.length > 0) {
+                  prNumber = prs[0].number;
+                } else {
+                  console.log('⚠️  No open PR found');
+                  return;
+                }
               }
             }
             
