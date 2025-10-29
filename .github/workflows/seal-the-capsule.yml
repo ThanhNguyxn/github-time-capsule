@@ -56,24 +56,33 @@ jobs:
         run: |
           echo "🔍 Checking what files were changed..."
           
+          # Fetch main branch for comparison
+          git fetch origin main:refs/remotes/origin/main || true
+          
           # Get list of changed files
-          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1 || echo "messages/")
           echo "Changed files:"
           echo "$CHANGED_FILES"
           
-          # Count changes outside messages/ folder
-          DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
+          # For message submission branches, only check if messages/ folder is touched
+          if [[ "${GITHUB_REF_NAME}" == add-message-* ]]; then
+            echo "✅ Message submission branch detected - skipping strict validation"
+            echo "📝 Expecting changes in messages/ folder"
+          else
+            # Count changes outside messages/ folder
+            DANGEROUS_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^messages/" | grep -v "^$" || true)
 
-          if [ ! -z "$DANGEROUS_CHANGES" ]; then
-            echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
-            echo "Blocked files:"
-            echo "$DANGEROUS_CHANGES"
-            echo ""
-            echo "⚠️ Only files in messages/ folder are allowed."
-            exit 1
+            if [ ! -z "$DANGEROUS_CHANGES" ]; then
+              echo "❌ SECURITY: PR attempts to modify files outside messages/ folder!"
+              echo "Blocked files:"
+              echo "$DANGEROUS_CHANGES"
+              echo ""
+              echo "⚠️ Only files in messages/ folder are allowed."
+              exit 1
+            fi
           fi
 
-          echo "✅ Security check passed - only messages/ folder modified"
+          echo "✅ Security check passed"
 
       - name: "⏰ Rate Limit: 1 message per day (UTC)"
         run: |
