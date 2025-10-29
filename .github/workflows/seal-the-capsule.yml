@@ -1,6 +1,10 @@
 ﻿name: 🔒 Seal the Capsule
 
 on:
+  # Trigger on push to message submission branches
+  push:
+    branches:
+      - 'add-message-**'
   pull_request_target:
     types: [opened]
     branches:
@@ -21,16 +25,29 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 🔍 Checkout PR branch
+      - name: 🔍 Checkout branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
 
       - name: 📝 Extract username
         id: extract
         run: |
-          USERNAME="${{ github.event.pull_request.user.login }}"
+          # For push events, extract username from branch name
+          # Branch format: add-message-{username}-{timestamp}
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BRANCH_NAME="${{ github.ref_name }}"
+            echo "📋 Branch name: $BRANCH_NAME"
+            # Extract username from branch name (format: add-message-USERNAME-TIMESTAMP)
+            USERNAME=$(echo "$BRANCH_NAME" | sed -E 's/add-message-([^-]+)-.*/\1/')
+            echo "📋 Extracted username from branch: $USERNAME"
+          else
+            # For PR events, get from pull_request context
+            USERNAME="${{ github.event.pull_request.user.login }}"
+            echo "📋 Got username from PR: $USERNAME"
+          fi
+          
           echo "username=$USERNAME" >> $GITHUB_OUTPUT
           echo "📋 Processing message from: @$USERNAME"
 
@@ -283,8 +300,30 @@ EOF
         with:
           script: |
             console.log('Attempting to comment on PR...');
-            console.log('PR number:', context.issue.number);
             const username = '${{ steps.extract.outputs.username }}';
+            
+            // Find PR number
+            let prNumber;
+            if (context.payload.pull_request) {
+              prNumber = context.payload.pull_request.number;
+            } else {
+              // For push events, find PR by branch name
+              const branch = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branch}`,
+                state: 'open'
+              });
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+              } else {
+                console.log('⚠️  No open PR found for this branch');
+                return;
+              }
+            }
+            
+            console.log('PR number:', prNumber);
             const comment = [
               '## 🎉 Your Message Has Been Sealed!',
               '',
@@ -322,7 +361,7 @@ EOF
             const result = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: prNumber,
               body: comment
             });
             console.log('✅ Comment posted successfully!');
@@ -334,9 +373,31 @@ EOF
         with:
           script: |
             console.log('Attempting to post failure comment...');
-            console.log('PR number:', context.issue.number);
             const username = '${{ steps.extract.outputs.username }}';
             const repoUrl = context.payload.repository.html_url;
+            
+            // Find PR number
+            let prNumber;
+            if (context.payload.pull_request) {
+              prNumber = context.payload.pull_request.number;
+            } else {
+              // For push events, find PR by branch name
+              const branch = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branch}`,
+                state: 'open'
+              });
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+              } else {
+                console.log('⚠️  No open PR found for this branch');
+                return;
+              }
+            }
+            
+            console.log('PR number:', prNumber);
             const comment = [
               '## ❌ Message Sealing Failed',
               '',
@@ -362,7 +423,7 @@ EOF
             const result = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: prNumber,
               body: comment
             });
             console.log('✅ Failure comment posted successfully!');
@@ -373,15 +434,36 @@ EOF
         uses: actions/github-script@v7
         with:
           script: |
+            // Find PR number
+            let prNumber;
+            if (context.payload.pull_request) {
+              prNumber = context.payload.pull_request.number;
+            } else {
+              // For push events, find PR by branch name
+              const branch = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branch}`,
+                state: 'open'
+              });
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+              } else {
+                console.log('⚠️  No open PR found for this branch - skipping close');
+                return;
+              }
+            }
+            
             // Wait 2 seconds to ensure comment is posted first
             console.log('Waiting 2 seconds before closing PR...');
             await new Promise(resolve => setTimeout(resolve, 2000));
             
-            console.log('Closing PR #' + context.issue.number);
+            console.log('Closing PR #' + prNumber);
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number,
+              pull_number: prNumber,
               state: 'closed'
             });
             
