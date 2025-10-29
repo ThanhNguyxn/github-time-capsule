@@ -1,7 +1,13 @@
 ﻿name: 🔒 Seal the Capsule
 
 on:
+  # For fork PRs (external contributors)
   pull_request_target:
+    types: [opened]
+    branches:
+      - main
+  # For same-repo PRs (repo owner can't fork their own repo)
+  pull_request:
     types: [opened]
     branches:
       - main

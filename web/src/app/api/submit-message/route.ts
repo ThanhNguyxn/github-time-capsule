@@ -76,30 +76,39 @@ export async function POST(request: NextRequest) {
     const owner = config.github.repoOwner;
     const repo = config.github.repoName;
     const branchName = `add-message-${session.user.username}-${Date.now()}`;
+    const isRepoOwner = session.user.username === owner;
 
-    // Step 1: Fork the repository (if not already forked)
-    // NOTE: Always use fork, even for repo owner, to ensure pull_request_target triggers
-    const userRepoOwner = session.user.username;
-    try {
-      await octokit.repos.get({
-        owner: session.user.username,
-        repo: repo,
-      });
-      console.log('Fork already exists');
-    } catch (error: any) {
-      if (error.status === 404) {
-        // Repo doesn't exist, create fork
-        console.log('Creating fork...');
-        await octokit.repos.createFork({
-          owner,
-          repo,
+    // Step 1: Determine repo location based on user
+    let userRepoOwner: string;
+    
+    if (isRepoOwner) {
+      // Repo owner can't fork their own repo - use main repo
+      userRepoOwner = owner;
+      console.log('User is repo owner - using main repo');
+    } else {
+      // External users - fork the repository (if not already forked)
+      userRepoOwner = session.user.username;
+      try {
+        await octokit.repos.get({
+          owner: session.user.username,
+          repo: repo,
         });
-        
-        // Wait a bit for fork to be created
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        console.log('Fork created successfully');
-      } else {
-        throw error;
+        console.log('Fork already exists');
+      } catch (error: any) {
+        if (error.status === 404) {
+          // Repo doesn't exist, create fork
+          console.log('Creating fork...');
+          await octokit.repos.createFork({
+            owner,
+            repo,
+          });
+          
+          // Wait a bit for fork to be created
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log('Fork created successfully');
+        } else {
+          throw error;
+        }
       }
     }
 
@@ -136,13 +145,17 @@ export async function POST(request: NextRequest) {
     // Note: Rate limit (1 message per day UTC) is enforced by the GitHub Actions workflow
     // The workflow checks the sealed folder in the main repository
 
-    // Step 5: Create pull request from fork to original repo
-    // Always use fork format to ensure pull_request_target triggers
+    // Step 5: Create pull request
+    // Format depends on whether it's same-repo or fork PR
+    const prHead = isRepoOwner 
+      ? branchName  // Same-repo format (triggers pull_request)
+      : `${userRepoOwner}:${branchName}`;  // Fork format (triggers pull_request_target)
+    
     const { data: prData } = await octokit.pulls.create({
       owner,
       repo,
       title: `Time Capsule Message from @${session.user.username}`,
-      head: `${userRepoOwner}:${branchName}`,  // Fork PR format
+      head: prHead,
       base: 'main',
       body: `🕰️ **Time Capsule Message Submission**
 
