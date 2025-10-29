@@ -1,7 +1,19 @@
 ﻿name: 🔒 Seal the Capsule
 
 on:
-  # Trigger via repository_dispatch for programmatic submissions
+  # Trigger via workflow_dispatch for programmatic submissions
+  workflow_dispatch:
+    inputs:
+      username:
+        description: 'GitHub username'
+        required: true
+      pr_number:
+        description: 'Pull request number'
+        required: true
+      branch:
+        description: 'Branch name'
+        required: true
+  # Backup: Trigger via repository_dispatch
   repository_dispatch:
     types: [seal-message]
   # Trigger on push to message submission branches
@@ -16,7 +28,6 @@ on:
     types: [opened]
     branches:
       - main
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -42,12 +53,18 @@ jobs:
           echo "🔍 DEBUG: Ref name: ${{ github.ref_name }}"
           
           # Handle different event types
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Get from workflow inputs
+            USERNAME="${{ github.event.inputs.username }}"
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+            BRANCH_NAME="${{ github.event.inputs.branch }}"
+            echo "📋 Got from workflow_dispatch: username=$USERNAME, PR=$PR_NUMBER, branch=$BRANCH_NAME"
+          elif [ "${{ github.event_name }}" = "repository_dispatch" ]; then
             # Get from dispatch payload
             USERNAME="${{ github.event.client_payload.username }}"
             PR_NUMBER="${{ github.event.client_payload.pr_number }}"
             BRANCH_NAME="${{ github.event.client_payload.branch }}"
-            echo "📋 Got from dispatch: username=$USERNAME, PR=$PR_NUMBER, branch=$BRANCH_NAME"
+            echo "📋 Got from repository_dispatch: username=$USERNAME, PR=$PR_NUMBER, branch=$BRANCH_NAME"
           elif [ "${{ github.event_name }}" = "push" ]; then
             # Extract from branch name
             BRANCH_NAME="${{ github.ref_name }}"

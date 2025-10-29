@@ -176,23 +176,39 @@ It will be automatically encrypted and sealed by GitHub Actions.
 *Automated submission • Do not edit this PR*`,
     });
 
-    // Step 6: Dispatch repository_dispatch event to trigger workflow
+    // Step 6: Trigger workflow_dispatch to seal the message
     // This is necessary because PRs created via API don't auto-trigger workflows
     try {
-      await octokit.repos.createDispatchEvent({
+      await octokit.actions.createWorkflowDispatch({
         owner,
         repo,
-        event_type: 'seal-message',
-        client_payload: {
+        workflow_id: 'seal-the-capsule.yml',
+        ref: 'main',
+        inputs: {
           username: session.user.username,
-          pr_number: prData.number,
+          pr_number: prData.number.toString(),
           branch: branchName,
         },
       });
-      console.log(`✅ Dispatched workflow event for PR #${prData.number}`);
+      console.log(`✅ Triggered workflow for PR #${prData.number}`);
     } catch (dispatchError) {
-      console.error('⚠️  Failed to dispatch workflow event:', dispatchError);
-      // Continue anyway - workflow might still be triggered by other means
+      console.error('⚠️  Failed to trigger workflow:', dispatchError);
+      // Try repository_dispatch as fallback
+      try {
+        await octokit.repos.createDispatchEvent({
+          owner,
+          repo,
+          event_type: 'seal-message',
+          client_payload: {
+            username: session.user.username,
+            pr_number: prData.number,
+            branch: branchName,
+          },
+        });
+        console.log(`✅ Dispatched via repository_dispatch for PR #${prData.number}`);
+      } catch (fallbackError) {
+        console.error('⚠️  Both dispatch methods failed:', fallbackError);
+      }
     }
 
     // Success!
