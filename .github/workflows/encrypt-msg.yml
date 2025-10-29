@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-      contents: write
       
     steps:
       - name: Comment Step 1
