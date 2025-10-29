@@ -27,19 +27,7 @@ Application description: (optional) Time capsule for messages to 2035
 6. Click **"Generate a new client secret"**
 7. Copy the **Client Secret** (won't be shown again!)
 
-## Step 2: Create GitHub Personal Access Token (Bot Token)
-
-**Why needed:** To create branches directly in the main repo instead of fork PRs, allowing GitHub Actions to run properly.
-
-1. Go to: https://github.com/settings/tokens/new
-2. Fill in:
-   - **Note**: `Time Capsule Bot Token`
-   - **Expiration**: Custom → Set to 2035+ (or "No expiration" if available)
-   - **Select scopes**: Check `repo` (Full control of private repositories)
-3. Click **"Generate token"**
-4. **COPY THE TOKEN** (won't be shown again!)
-
-## Step 3: Update Environment Variables
+## Step 2: Update Environment Variables
 
 ### For Local Development:
 
@@ -49,9 +37,6 @@ Update `web/.env.local`:
 # Replace with your actual values
 GITHUB_CLIENT_ID=your_actual_client_id_here
 GITHUB_CLIENT_SECRET=your_actual_client_secret_here
-
-# GitHub Bot Token (PAT with repo write access)
-GITHUB_BOT_TOKEN=ghp_your_personal_access_token_here
 
 # Leave these as-is for development
 NEXTAUTH_URL=http://localhost:3000
@@ -66,14 +51,13 @@ NEXTAUTH_SECRET=development_secret_key_replace_in_production_min_32_characters_l
 ```
 GITHUB_CLIENT_ID = your_production_client_id
 GITHUB_CLIENT_SECRET = your_production_client_secret
-GITHUB_BOT_TOKEN = ghp_your_personal_access_token_here
 NEXTAUTH_URL = https://your-app.vercel.app
 NEXTAUTH_SECRET = (generate with: openssl rand -base64 32)
 GITHUB_REPO_OWNER = ThanhNguyxn
 GITHUB_REPO_NAME = github-time-capsule
 ```
 
-## Step 4: Generate Production Secret
+## Step 3: Generate Production Secret
 
 ```bash
 # On Linux/Mac:
@@ -86,7 +70,7 @@ openssl rand -base64 32
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-## Step 5: Test OAuth Flow
+## Step 4: Test OAuth Flow
 
 ### Development:
 1. Restart your dev server: `npm run dev`
