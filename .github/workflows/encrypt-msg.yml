@@ -96,18 +96,17 @@ jobs:
         with:
           script: |
             const user = '${{ steps.user.outputs.username }}';
+            const message = '## 🎉 Sealed!\n\n' +
+              '@' + user + ' - Encrypted and saved!\n\n' +
+              '✅ Sealed to: sealed/' + user + '/\n' +
+              '✅ Unlocks: January 1, 2035\n\n' +
+              'Thank you!';
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## 🎉 Sealed!
-
-@${user} - Encrypted and saved!
-
-✅ Sealed to: sealed/${user}/
-✅ Unlocks: January 1, 2035
-
-Thank you!`
+              body: message
             });
       
       - name: Close
