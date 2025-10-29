@@ -34,6 +34,10 @@ jobs:
       - name: 📝 Extract username
         id: extract
         run: |
+          echo "🔍 DEBUG: Event name: ${{ github.event_name }}"
+          echo "🔍 DEBUG: Ref: ${{ github.ref }}"
+          echo "🔍 DEBUG: Ref name: ${{ github.ref_name }}"
+          
           # For push events, extract username from branch name
           # Branch format: add-message-{username}-{timestamp}
           if [ "${{ github.event_name }}" = "push" ]; then
@@ -46,6 +50,11 @@ jobs:
             # For PR events, get from pull_request context
             USERNAME="${{ github.event.pull_request.user.login }}"
             echo "📋 Got username from PR: $USERNAME"
+          fi
+          
+          if [ -z "$USERNAME" ]; then
+            echo "❌ ERROR: Could not extract username!"
+            exit 1
           fi
           
           echo "username=$USERNAME" >> $GITHUB_OUTPUT
