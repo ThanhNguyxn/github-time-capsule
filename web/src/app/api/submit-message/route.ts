@@ -64,9 +64,9 @@ export async function POST(request: NextRequest) {
 
     // Simple obfuscation to prevent message from being visible in PR diff
     // This is not secure encryption, just to hide from casual viewing
-    const obfuscated = Buffer.from(message, 'utf8')
-      .map((byte, index) => byte ^ (index % 256))
-      .toString('base64');
+    const obfuscatedBytes = Buffer.from(message, 'utf8')
+      .map((byte, index) => byte ^ (index % 256));
+    const obfuscated = Buffer.from(obfuscatedBytes).toString('base64');
 
     // Initialize Octokit with user's access token
     const octokit = new Octokit({
