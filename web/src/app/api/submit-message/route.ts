@@ -76,26 +76,39 @@ export async function POST(request: NextRequest) {
     const owner = config.github.repoOwner;
     const repo = config.github.repoName;
     const branchName = `add-message-${session.user.username}-${Date.now()}`;
+    const isRepoOwner = session.user.username === owner;
 
-    // Step 1: Fork the repository (if not already forked)
-    const userRepoOwner = session.user.username;
-    try {
-      await octokit.repos.get({
-        owner: session.user.username,
-        repo: repo,
-      });
-    } catch (error: any) {
-      if (error.status === 404) {
-        // Repo doesn't exist, create fork
-        await octokit.repos.createFork({
-          owner,
-          repo,
+    // Step 1: Determine where to create the branch
+    let userRepoOwner = session.user.username;
+    
+    if (isRepoOwner) {
+      // User is repo owner - create branch directly in main repo
+      console.log('User is repo owner - creating branch in main repo');
+      userRepoOwner = owner;
+    } else {
+      // User is not owner - fork the repository (if not already forked)
+      console.log('User is not owner - checking for fork');
+      try {
+        await octokit.repos.get({
+          owner: session.user.username,
+          repo: repo,
         });
-        
-        // Wait a bit for fork to be created
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      } else {
-        throw error;
+        console.log('Fork already exists');
+      } catch (error: any) {
+        if (error.status === 404) {
+          // Repo doesn't exist, create fork
+          console.log('Creating fork...');
+          await octokit.repos.createFork({
+            owner,
+            repo,
+          });
+          
+          // Wait a bit for fork to be created
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log('Fork created successfully');
+        } else {
+          throw error;
+        }
       }
     }
 
@@ -107,7 +120,7 @@ export async function POST(request: NextRequest) {
     });
     const mainSha = refData.object.sha;
 
-    // Step 3: Create a new branch in fork
+    // Step 3: Create a new branch
     await octokit.git.createRef({
       owner: userRepoOwner,
       repo,
@@ -132,12 +145,13 @@ export async function POST(request: NextRequest) {
     // Note: Rate limit (1 message per day UTC) is enforced by the GitHub Actions workflow
     // The workflow checks the sealed folder in the main repository
 
-    // Step 5: Create pull request from fork to original repo
+    // Step 5: Create pull request
+    const prHead = isRepoOwner ? branchName : `${userRepoOwner}:${branchName}`;
     const { data: prData } = await octokit.pulls.create({
       owner,
       repo,
       title: `Time Capsule Message from @${session.user.username}`,
-      head: `${userRepoOwner}:${branchName}`,  // Fork PR format
+      head: prHead,
       base: 'main',
       body: `🕰️ **Time Capsule Message Submission**
 

@@ -3,6 +3,8 @@ name: Rate Limit Check
 on:
   pull_request_target:
     types: [opened]
+  pull_request:
+    types: [opened]
 
 jobs:
   check-rate-limit:
