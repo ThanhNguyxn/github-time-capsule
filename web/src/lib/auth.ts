@@ -8,7 +8,8 @@ export const authOptions: AuthOptions = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
       authorization: {
         params: {
-          scope: "public_repo user:email",
+          // Need 'workflow' scope to dispatch repository_dispatch events
+          scope: "public_repo user:email workflow",
         },
       },
     }),
