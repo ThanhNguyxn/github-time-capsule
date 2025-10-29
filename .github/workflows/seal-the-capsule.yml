@@ -138,6 +138,44 @@ jobs:
           echo "📋 Listing imported keys:"
           gpg --list-keys
 
+      - name: 🔓 Deobfuscate message (if from web interface)
+        run: |
+          USERNAME="${{ steps.extract.outputs.username }}"
+          MESSAGE_FILE="messages/${USERNAME}.txt"
+          
+          # Check if message is obfuscated (base64 encoded with XOR)
+          # Web submissions are obfuscated, manual submissions are plain text
+          if base64 -d "$MESSAGE_FILE" >/dev/null 2>&1; then
+            echo "🔄 Detected obfuscated message from web interface"
+            echo "🔓 Deobfuscating..."
+            
+            # Create Node.js script to deobfuscate
+            cat > /tmp/deobfuscate.js << 'EOF'
+const fs = require('fs');
+const obfuscated = fs.readFileSync(process.argv[1], 'utf8').trim();
+try {
+  // Decode from base64 and XOR back
+  const buffer = Buffer.from(obfuscated, 'base64');
+  const deobfuscated = Buffer.from(
+    buffer.map((byte, index) => byte ^ (index % 256))
+  );
+  process.stdout.write(deobfuscated);
+} catch (e) {
+  // If deobfuscation fails, assume it's plain text
+  fs.copyFileSync(process.argv[1], process.argv[2]);
+  process.exit(0);
+}
+EOF
+            
+            # Deobfuscate the message
+            node /tmp/deobfuscate.js "$MESSAGE_FILE" > "${MESSAGE_FILE}.tmp"
+            mv "${MESSAGE_FILE}.tmp" "$MESSAGE_FILE"
+            
+            echo "✅ Message deobfuscated successfully"
+          else
+            echo "📝 Plain text message detected (manual submission)"
+          fi
+
       - name: 🔒 Encrypt message
         run: |
           USERNAME="${{ steps.extract.outputs.username }}"

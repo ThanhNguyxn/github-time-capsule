@@ -5,7 +5,6 @@ import { validation, securityHeaders } from '@/lib/validation';
 import { rateLimit } from '@/lib/rate-limit';
 import config from '@/lib/env';
 import { authOptions } from '@/lib/auth';
-import { encryptMessage } from '@/lib/encrypt';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,17 +54,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Encrypt the message
-    let encrypted;
-    try {
-      const encryptedBuffer = await encryptMessage(message);
-      encrypted = Buffer.from(encryptedBuffer).toString('base64');
-    } catch (error) {
+    // Validate message (basic validation)
+    if (message.trim().length === 0) {
       return NextResponse.json(
-        { error: 'Failed to encrypt message' },
-        { status: 500, headers: securityHeaders }
+        { error: 'Message cannot be empty' },
+        { status: 400, headers: securityHeaders }
       );
     }
+
+    // Simple obfuscation to prevent message from being visible in PR diff
+    // This is not secure encryption, just to hide from casual viewing
+    const obfuscated = Buffer.from(message, 'utf8')
+      .map((byte, index) => byte ^ (index % 256))
+      .toString('base64');
 
     // Initialize Octokit with user's access token
     const octokit = new Octokit({
@@ -114,91 +115,22 @@ export async function POST(request: NextRequest) {
       sha: mainSha,
     });
 
-    // Ensure user folder exists in 'sealed' and save the encrypted file
-    const sealedFolder = `sealed/${session.user.username}`;
-    try {
-      await octokit.repos.getContent({
-        owner: userRepoOwner,
-        repo,
-        path: sealedFolder,
-        ref: branchName,
-      });
-    } catch {
-      // Folder doesn't exist, create it
-      await octokit.repos.createOrUpdateFileContents({
-        owner: userRepoOwner,
-        repo,
-        path: `${sealedFolder}/.keep`,
-        message: `Create sealed folder for ${session.user.username}`,
-        content: '',
-        encoding: 'utf-8',
-        branch: branchName,
-      });
-    }
-
-    // Save the encrypted file in the sealed folder
-    const sealedFileName = `${sealedFolder}/${session.user.username}.gpg`;
+    // Save the obfuscated message in the messages folder
+    // This prevents the message from being visible in PR diff
+    // The workflow will deobfuscate, encrypt with GPG, and move to sealed/ folder
+    const messageFileName = `messages/${session.user.username}.txt`;
     await octokit.repos.createOrUpdateFileContents({
       owner: userRepoOwner,
       repo,
-      path: sealedFileName,
-      message: `Add sealed message for ${session.user.username}`,
-      content: encrypted,
+      path: messageFileName,
+      message: `Add obfuscated message from ${session.user.username}`,
+      content: obfuscated,
       encoding: 'base64',
       branch: branchName,
     });
 
-    // Check rate limit (1 submission per day UTC, except for the repository owner)
-    if (session.user.username !== owner && session.user.email !== 'thanhnguyentuan2007@gmail.com') {
-      try {
-        // Get all files in sealed folder
-        const { data: existingFiles } = await octokit.repos.getContent({
-          owner: userRepoOwner,
-          repo,
-          path: sealedFolder,
-          ref: branchName,
-        }).catch(() => ({ data: [] }));
-
-        if (Array.isArray(existingFiles) && existingFiles.length > 0) {
-          // Get the most recent commit for this folder
-          const { data: commits } = await octokit.repos.listCommits({
-            owner: userRepoOwner,
-            repo,
-            path: sealedFolder,
-            per_page: 1,
-          });
-
-          if (commits.length > 0) {
-            // Get today's date in UTC
-            const now = new Date();
-            const todayUTC = now.toISOString().split('T')[0]; // YYYY-MM-DD in UTC
-            
-            // Get last commit date in UTC
-            const lastCommitDate = new Date(commits[0].commit.author?.date || 0);
-            const lastSubmitDateUTC = lastCommitDate.toISOString().split('T')[0];
-
-            // Check if already submitted today (same UTC date)
-            if (lastSubmitDateUTC === todayUTC) {
-              // Calculate time until next day UTC
-              const tomorrow = new Date(now);
-              tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-              tomorrow.setUTCHours(0, 0, 0, 0);
-              const hoursUntilReset = Math.ceil((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60));
-
-              return NextResponse.json(
-                { 
-                  error: `Rate limit: You already submitted today (UTC). Resets at 00:00 UTC (in ${hoursUntilReset}h). One message per day (UTC timezone).` 
-                },
-                { status: 429, headers: securityHeaders }
-              );
-            }
-          }
-        }
-      } catch (error) {
-        // If folder doesn't exist or error checking, allow submission
-        console.log('Rate limit check skipped (folder does not exist or error)');
-      }
-    }
+    // Note: Rate limit (1 message per day UTC) is enforced by the GitHub Actions workflow
+    // The workflow checks the sealed folder in the main repository
 
     // Step 5: Create pull request to original repo
     const { data: prData } = await octokit.pulls.create({
