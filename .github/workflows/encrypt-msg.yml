@@ -84,8 +84,13 @@ jobs:
           git config user.name "Bot"
           git config user.email "bot@local"
           git add sealed/
-          git commit -m "Sealed @${USERNAME}" || true
-          git push origin main || true
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Sealed @${USERNAME}"
+            git push origin main
+          fi
       
       - name: Success
         uses: actions/github-script@v7
