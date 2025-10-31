@@ -10,16 +10,23 @@ export async function GET() {
     const repo = config.github.repoName;
 
     // Get sealed messages count
+    // Messages are stored in sealed/username/*.gpg
+    // Count the number of user folders (each user = 1 message)
     let messageCount = 0;
     try {
-      const { data: files } = await octokit.repos.getContent({
+      const { data: folders } = await octokit.repos.getContent({
         owner,
         repo,
         path: 'sealed',
       });
 
-      if (Array.isArray(files)) {
-        messageCount = files.filter(file => file.name.endsWith('.gpg')).length;
+      if (Array.isArray(folders)) {
+        // Count directories (each user has a folder)
+        // Filter out non-directories and hidden folders
+        const userFolders = folders.filter(
+          item => item.type === 'dir' && !item.name.startsWith('.')
+        );
+        messageCount = userFolders.length;
       }
     } catch (error: any) {
       // If sealed folder doesn't exist yet, count is 0
