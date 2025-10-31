@@ -4,11 +4,13 @@ on:
   pull_request:
     types: [opened]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   encrypt:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
       
     steps:
       - name: Comment Step 1
