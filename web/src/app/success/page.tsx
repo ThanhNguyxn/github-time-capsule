@@ -77,12 +77,80 @@ function SuccessContent() {
           </div>
         )}
 
+        {/* Status Cards */}
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          {/* Security Card */}
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">🔒</span>
+              <h3 className="font-bold text-green-100 text-lg">Secured</h3>
+            </div>
+            <div className="space-y-2 text-sm text-green-200">
+              <p>✓ <strong>Encrypted</strong> with AES-256</p>
+              <p>✓ <strong>Client-side</strong> encryption</p>
+              <p>✓ <strong>Private</strong> until 2035</p>
+            </div>
+          </div>
+
+          {/* Time Card */}
+          <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/50 rounded-xl p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">⏰</span>
+              <h3 className="font-bold text-blue-100 text-lg">Countdown</h3>
+            </div>
+            <div className="text-sm text-blue-200">
+              <p className="mb-2">Unlocks on:</p>
+              <p className="text-xl font-bold text-white">January 1, 2035</p>
+              <p className="mt-2 text-xs opacity-75">~10 years from now</p>
+            </div>
+          </div>
+        </div>
+
         {/* Important Note */}
-        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-xl p-4 mb-8 text-left">
-          <p className="text-yellow-200 text-sm">
-            <span className="font-bold">⚠️ Important:</span> Your message is now locked and cannot be edited. 
-            It will remain sealed until January 1, 2035. Not even you can read it before then!
-          </p>
+        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-xl p-5 mb-8 text-left">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl flex-shrink-0">⚠️</span>
+            <div>
+              <p className="font-bold text-yellow-100 mb-2">Important Notice</p>
+              <div className="text-sm text-yellow-200 space-y-1">
+                <p>• Your message is now <strong>permanently sealed</strong></p>
+                <p>• It <strong>cannot be edited or deleted</strong></p>
+                <p>• <strong>No one</strong> can read it (not even you!) until 2035</p>
+                <p>• GitHub Actions will auto-unlock it on January 1, 2035</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How to Receive */}
+        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50 rounded-xl p-6 mb-8 text-left">
+          <h3 className="font-bold text-purple-100 text-lg mb-4 flex items-center gap-2">
+            <span className="text-2xl">📬</span>
+            How to Receive Your Message in 2035
+          </h3>
+          <div className="space-y-3 text-sm text-purple-200">
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">⭐</span>
+              <div>
+                <p className="font-semibold text-white">Star the Repository</p>
+                <p className="text-xs opacity-90">Get notified when activity happens</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">👁️</span>
+              <div>
+                <p className="font-semibold text-white">Watch → All Activity</p>
+                <p className="text-xs opacity-90">Receive email notifications</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">🔔</span>
+              <div>
+                <p className="font-semibold text-white">Set a Reminder</p>
+                <p className="text-xs opacity-90">Calendar reminder for January 1, 2035</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Actions */}

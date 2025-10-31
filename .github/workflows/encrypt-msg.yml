@@ -17,11 +17,36 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const body = `## 🔄 Processing Your Time Capsule Message
+            
+            <div align="center">
+            
+            ![Status](https://img.shields.io/badge/Status-Processing-yellow?style=for-the-badge)
+            
+            </div>
+            
+            ---
+            
+            ### 📋 What's Happening:
+            
+            | Step | Status | Description |
+            |------|--------|-------------|
+            | 🔍 | ⏳ **In Progress** | Validating submission |
+            | 🔐 | ⏳ **Queued** | Encrypting with GPG |
+            | 💾 | ⏳ **Queued** | Saving to vault |
+            | ✅ | ⏳ **Queued** | Finalizing |
+            
+            ---
+            
+            > ⏰ **Please wait...** This usually takes 10-20 seconds.
+            
+            *🤖 Automated by GitHub Actions*`;
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '✅ Workflow triggered! Starting encryption process...'
+              body: body
             });
       
       - name: Checkout
@@ -128,15 +153,65 @@ jobs:
             const user = '${{ steps.user.outputs.username }}';
             const type = '${{ steps.check.outputs.type }}';
             
-            let statusText = type === 'plaintext' 
-              ? 'Encrypted with GPG and saved!' 
-              : 'Message sealed successfully!';
+            const encryptionMethod = type === 'plaintext' 
+              ? '🔐 **Encrypted with GPG** (AES-256 + RSA-4096)' 
+              : '🔒 **Pre-encrypted** (Client-side encryption)';
             
-            const message = '## 🎉 Sealed!\n\n' +
-              '@' + user + ' - ' + statusText + '\n\n' +
-              '✅ Sealed to: sealed/' + user + '/\n' +
-              '✅ Unlocks: January 1, 2035\n\n' +
-              'Thank you for participating in the GitHub Time Capsule! 🕰️';
+            const message = `## 🎉 Success! Your Message is Sealed! 🕰️
+            
+            <div align="center">
+            
+            ![Status](https://img.shields.io/badge/Status-✅_Sealed-success?style=for-the-badge)
+            ![Unlock Date](https://img.shields.io/badge/Unlocks-January_1,_2035-blue?style=for-the-badge)
+            
+            </div>
+            
+            ---
+            
+            ### 👤 Message Details:
+            
+            | Item | Details |
+            |------|---------|
+            | **Submitter** | @${user} |
+            | **Sealed At** | \`${new Date().toUTCString()}\` |
+            | **Storage** | \`sealed/${user}/\` |
+            | **Security** | ${encryptionMethod} |
+            | **Unlock Date** | **January 1, 2035** 🗓️ |
+            
+            ---
+            
+            ### ✅ All Steps Completed:
+            
+            - ✅ **Validated** - Submission verified
+            - ✅ **Encrypted** - Message secured with military-grade encryption
+            - ✅ **Stored** - Saved in the time capsule vault
+            - ✅ **Sealed** - Locked until 2035!
+            
+            ---
+            
+            ### 📬 How to Receive Your Message in 2035:
+            
+            1. ⭐ **[Star this repository](../../stargazers)** to get notified
+            2. 👁️ **Watch → All Activity** to receive updates
+            3. 🔔 You'll get an email on **January 1, 2035** when it unlocks!
+            
+            ---
+            
+            <div align="center">
+            
+            ### 🎊 Thank You for Participating! 🎊
+            
+            *Your message from ${new Date().getFullYear()} is now part of history.*
+            
+            **See you in 2035!** 🚀
+            
+            ---
+            
+            ![Time Capsule](https://img.shields.io/badge/⏰-GitHub_Time_Capsule-purple?style=flat-square)
+            
+            🤖 *Automated by GitHub Actions*
+            
+            </div>`;
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,

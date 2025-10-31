@@ -195,19 +195,73 @@ Write anything you want - this message will be sealed until January 1, 2035!"
             )}
 
             {/* Info Box */}
-            <div className="mt-6 p-4 bg-blue-500/20 border border-blue-500/50 rounded-xl text-blue-200">
-              <p className="font-semibold mb-2">🔒 What happens next:</p>
-              <ul className="text-sm space-y-1">
-                <li>✅ Your message will be encrypted immediately</li>
-                <li>
-                  ✅ Saved as:{' '}
-                  <code className="bg-white/10 px-1 rounded">
-                    messages/{session?.user?.username || 'anonymous'}.txt
-                  </code>
-                </li>
-                <li>✅ Sealed until January 1, 2035</li>
-                <li>✅ Nobody can read it (not even you!) until then</li>
-              </ul>
+            <div className="mt-6 space-y-4">
+              {/* Security Info */}
+              <div className="p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/50 rounded-xl">
+                <p className="font-bold mb-3 text-blue-100 flex items-center gap-2">
+                  <span className="text-xl">🔒</span>
+                  <span>Military-Grade Encryption</span>
+                </p>
+                <div className="text-sm space-y-2 text-blue-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    <span><strong>Client-side encryption</strong> - Your message is encrypted in your browser before upload</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    <span><strong>GPG encryption</strong> with AES-256 + RSA-4096</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    <span><strong>Never visible</strong> - No one can read it (including GitHub admins!)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline */}
+              <div className="p-4 bg-purple-500/20 border border-purple-500/50 rounded-xl">
+                <p className="font-bold mb-3 text-purple-100 flex items-center gap-2">
+                  <span className="text-xl">⏰</span>
+                  <span>What Happens Next</span>
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">1️⃣</span>
+                    <div className="text-purple-200">
+                      <strong>Encrypted instantly</strong> in your browser
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">2️⃣</span>
+                    <div className="text-purple-200">
+                      <strong>GitHub Actions</strong> creates a Pull Request
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">3️⃣</span>
+                    <div className="text-purple-200">
+                      <strong>Sealed forever</strong> in <code className="bg-white/10 px-1 rounded text-xs">sealed/{session?.user?.username}/</code>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">4️⃣</span>
+                    <div className="text-purple-200">
+                      <strong>Auto-unlocks</strong> on January 1, 2035! 🎉
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-xl">
+                <p className="font-bold mb-2 text-yellow-100 flex items-center gap-2">
+                  <span className="text-xl">⚠️</span>
+                  <span>Important Notice</span>
+                </p>
+                <p className="text-sm text-yellow-200">
+                  Once sealed, your message <strong>CANNOT be edited or deleted</strong>. It will be locked until 2035. Make sure you're happy with it before submitting!
+                </p>
+              </div>
             </div>
 
             {/* Submit Button */}
