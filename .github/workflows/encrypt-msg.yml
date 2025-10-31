@@ -34,26 +34,47 @@ jobs:
         run: |
           echo "username=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
       
-      - name: Validate
+      - name: Check submission type
+        id: check
         run: |
           USERNAME="${{ steps.user.outputs.username }}"
-          if [ ! -f "messages/${USERNAME}.txt" ]; then
-            echo "Error: Message file not found"
-            exit 1
+          
+          # Check if message file exists (manual submission)
+          if [ -f "messages/${USERNAME}.txt" ]; then
+            echo "type=plaintext" >> $GITHUB_OUTPUT
+            echo "✅ Found plaintext message - will encrypt with GPG"
+            exit 0
           fi
+          
+          # Check if sealed file exists (web interface submission)
+          if [ -f "sealed/${USERNAME}/${USERNAME}.gpg" ] || [ -d "sealed/${USERNAME}" ]; then
+            echo "type=sealed" >> $GITHUB_OUTPUT
+            echo "✅ Found encrypted message - will commit to main"
+            exit 0
+          fi
+          
+          # No valid submission found
+          echo "❌ Error: No message file found"
+          echo "Expected either:"
+          echo "  - messages/${USERNAME}.txt (plaintext), or"
+          echo "  - sealed/${USERNAME}/*.gpg (encrypted)"
+          exit 1
       
       - name: Setup GPG
+        if: steps.check.outputs.type == 'plaintext'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y gnupg
       
       - name: Import GPG
+        if: steps.check.outputs.type == 'plaintext'
         env:
           KEY: ${{ secrets.GPG_PUBLIC_KEY }}
         run: |
           echo "$KEY" | gpg --import
       
       - name: Encrypt
+        if: steps.check.outputs.type == 'plaintext'
         run: |
           USERNAME="${{ steps.user.outputs.username }}"
           mkdir -p "sealed/${USERNAME}"
@@ -66,6 +87,13 @@ jobs:
               --output "sealed/${USERNAME}/${USERNAME}-${TS}.gpg" \
               "messages/${USERNAME}.txt"
           
+          cp -r sealed /tmp/sealed-backup
+      
+      - name: Copy sealed files (web interface)
+        if: steps.check.outputs.type == 'sealed'
+        run: |
+          USERNAME="${{ steps.user.outputs.username }}"
+          # Copy sealed files from PR branch
           cp -r sealed /tmp/sealed-backup
       
       - name: Checkout main
@@ -98,11 +126,17 @@ jobs:
         with:
           script: |
             const user = '${{ steps.user.outputs.username }}';
+            const type = '${{ steps.check.outputs.type }}';
+            
+            let statusText = type === 'plaintext' 
+              ? 'Encrypted with GPG and saved!' 
+              : 'Message sealed successfully!';
+            
             const message = '## 🎉 Sealed!\n\n' +
-              '@' + user + ' - Encrypted and saved!\n\n' +
+              '@' + user + ' - ' + statusText + '\n\n' +
               '✅ Sealed to: sealed/' + user + '/\n' +
               '✅ Unlocks: January 1, 2035\n\n' +
-              'Thank you!';
+              'Thank you for participating in the GitHub Time Capsule! 🕰️';
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,
