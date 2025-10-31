@@ -393,6 +393,7 @@ Want to know how this works technically? Check out our detailed docs:
 ### **[📖 For Developers & Technical Details →](FOR-DEVELOPERS.md)**
 
 [![Developer Docs](https://img.shields.io/badge/Read-Developer%20Docs-blue?style=for-the-badge&logo=github)](FOR-DEVELOPERS.md)
+[![Testing Guide](https://img.shields.io/badge/Read-Testing%20Guide-green?style=for-the-badge&logo=checkmarx)](TESTING.md)
 
 </div>
 
@@ -403,6 +404,11 @@ Want to know how this works technically? Check out our detailed docs:
 - 🧪 Testing & development
 - 🤝 How to contribute
 - 📚 API reference
+
+**Quick Links:**
+- 🧪 **[Testing Guide](TESTING.md)** - How to test workflows and cleanup
+- 🛠️ **[Developer Docs](FOR-DEVELOPERS.md)** - Technical documentation
+- 🧹 **Cleanup Scripts** - `./cleanup-tests.sh` (Linux/Mac) or `.\cleanup-tests.ps1` (Windows)
 
 <br>
 
