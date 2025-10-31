@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: The Time Has Come
+      - name: Time Has Come
         run: |
           echo "╔════════════════════════════════════════════════════════════════╗"
           echo "║                                                                ║"
@@ -38,7 +38,7 @@ jobs:
           echo ""
           echo "🎉 After 10 years of waiting, the time capsule is opening!"
 
-      - name: Verify Date
+      - name: Date
         run: |
           CURRENT_DATE=$(date +%Y-%m-%d)
           UNVEIL_DATE="2035-01-01"
@@ -54,18 +54,18 @@ jobs:
           
           echo "✅ The time has come! Proceeding with unveiling..."
 
-      - name: Checkout Repository
+      - name: Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup GPG
+      - name: GPG
         run: |
           echo "Installing GPG..."
           sudo apt-get update
           sudo apt-get install -y gnupg
 
-      - name: Import Private Key
+      - name: Private Key
         run: |
           echo "Importing the private key from secrets..."
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
@@ -73,14 +73,14 @@ jobs:
           # List imported keys
           gpg --list-secret-keys
 
-      - name: Count Sealed Messages
+      - name: Sealed Messages
         id: count
         run: |
           SEALED_COUNT=$(ls -1 sealed/*.gpg 2>/dev/null | wc -l)
           echo "sealed_count=$SEALED_COUNT" >> $GITHUB_OUTPUT
           echo "📦 Found $SEALED_COUNT sealed messages"
 
-      - name: Decrypt All Messages
+      - name: All Messages
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
@@ -125,7 +125,7 @@ jobs:
           echo "success_count=$SUCCESS_COUNT" >> $GITHUB_ENV
           echo "fail_count=$FAIL_COUNT" >> $GITHUB_ENV
 
-      - name: Create Index
+      - name: Index
         run: |
           INDEX_FILE="decrypted-messages/INDEX.md"
           
@@ -179,7 +179,7 @@ EOF
           echo "" >> "$INDEX_FILE"
           echo "*Messages are listed alphabetically by username.*" >> "$INDEX_FILE"
 
-      - name: Publish Decryption Key
+      - name: Decryption Key
         run: |
           # Export the private key
           gpg --armor --export-secret-keys time-capsule-2035 > DECRYPTION-KEY.asc
@@ -235,7 +235,7 @@ Browse the [Index](./decrypted-messages/INDEX.md) to see all messages.
 **The secret is revealed. The messages are free.** 🕊️
 EOF
 
-      - name: Update README
+      - name: README
         run: |
           # Create unveiling announcement for README
           cat > UNVEILING-ANNOUNCEMENT.md << 'EOF'
@@ -276,7 +276,7 @@ EOF
           cat UNVEILING-ANNOUNCEMENT.md README.md > README-new.md
           mv README-new.md README.md
 
-      - name: Commit Decrypted Messages
+      - name: Decrypted Messages
         run: |
           git config user.name "Time Capsule Bot"
           git config user.email "thanhnguyentuan2007@gmail.com"
@@ -298,7 +298,7 @@ EOF
           
           git push origin main
 
-      - name: Create GitHub Release
+      - name: GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -372,7 +372,7 @@ EOF
             DECRYPTION-KEY.asc \
             DECRYPTION-INSTRUCTIONS.md
 
-      - name: Create Announcement Issue
+      - name: Announcement Issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -410,7 +410,7 @@ EOF
           *The time capsule is now a historical archive, preserved forever.* 🕰️✨" \
             --label "announcement,unveiling"
 
-      - name: Unveiling Complete
+      - name: Complete
         run: |
           echo ""
           echo "╔════════════════════════════════════════════════════════════════╗"
