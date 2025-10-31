@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🔢 Count sealed messages
+      - name: Count sealed messages
         id: count
         run: |
           # Count .gpg files in sealed/ folder (excluding .gitkeep)
@@ -32,7 +32,7 @@ jobs:
           echo "MESSAGE_COUNT=$MESSAGE_COUNT" >> $GITHUB_OUTPUT
           echo "✅ Found $MESSAGE_COUNT sealed messages"
 
-      - name: 📅 Calculate days until 2035
+      - name: Calculate days until 2035
         id: days
         run: |
           # Calculate days until January 1, 2035
@@ -45,7 +45,7 @@ jobs:
           echo "DAYS_UNTIL=$DAYS_UNTIL" >> $GITHUB_OUTPUT
           echo "✅ Days until 2035: $DAYS_UNTIL"
 
-      - name: ✍️ Update README with new statistics
+      - name: Update README with new statistics
         run: |
           MESSAGE_COUNT="${{ steps.count.outputs.MESSAGE_COUNT }}"
           DAYS_UNTIL="${{ steps.days.outputs.DAYS_UNTIL }}"
@@ -62,7 +62,7 @@ jobs:
           echo "   - Messages Sealed: $MESSAGE_COUNT"
           echo "   - Days Until 2035: $DAYS_UNTIL"
 
-      - name: 📊 Check if there are changes
+      - name: Check if there are changes
         id: verify
         run: |
           if git diff --quiet README.md; then
@@ -74,7 +74,7 @@ jobs:
             git diff README.md
           fi
 
-      - name: 💾 Commit and push changes
+      - name: Commit and push changes
         if: steps.verify.outputs.changed == 'true'
         run: |
           git config user.name "Statistics Bot"
@@ -84,7 +84,7 @@ jobs:
           git push origin main
           echo "✅ Pushed changes to repository"
 
-      - name: 🎉 Summary
+      - name: Summary
         run: |
           echo "### 📊 Statistics Update Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
