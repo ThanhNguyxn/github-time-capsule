@@ -377,10 +377,9 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 </details>
 
 <details>
-<summary><b>📬 How do I read my message in 2035?</b></summary>
+📖 **[Read Full Guide: How to Access Your Message in 2035](./HOW-TO-READ-2035.md)**
 
-
----
+</details>
 
 <br>
 
@@ -406,9 +405,8 @@ Want to know how this works technically? Check out our detailed docs:
 - 📚 API reference
 
 **Quick Links:**
-- 🧪 **[Testing Guide](TESTING.md)** - How to test workflows and cleanup
+- 🧪 **[Testing Guide](TESTING.md)** - How to test workflows
 - 🛠️ **[Developer Docs](FOR-DEVELOPERS.md)** - Technical documentation
-- 🧹 **Cleanup Scripts** - `./cleanup-tests.sh` (Linux/Mac) or `.\cleanup-tests.ps1` (Windows)
 
 <br>
 
