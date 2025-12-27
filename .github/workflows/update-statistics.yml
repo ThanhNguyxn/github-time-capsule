@@ -8,7 +8,7 @@ on:
   # Also run when a new message is sealed
   push:
     paths:
-      - 'sealed/*.gpg'
+      - 'sealed/**/*.gpg'
   
   # Manual trigger
   workflow_dispatch:
