@@ -37,19 +37,8 @@ export default function CountdownTimer() {
       <h2 className="text-2xl font-bold text-white text-center mb-4">
         ⏰ Time Until Unveiling
       </h2>
-      
-      {/* Total Days Badge (like README) */}
-      <div className="flex justify-center mb-6">
-        <div className="px-6 py-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-xl">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">🕰️</span>
-            <div>
-              <p className="text-orange-200 text-sm font-medium">Days Until 2035</p>
-              <p className="text-3xl font-bold text-white">{timeLeft.days.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+
+
 
       {/* Detailed Countdown */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

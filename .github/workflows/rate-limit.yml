@@ -1,4 +1,4 @@
-name: Rate Limit Check
+name: 🚦 Rate Limit Check
 
 on:
   pull_request_target:
@@ -12,54 +12,72 @@ on:
 
 jobs:
   check-rate-limit:
+    name: 🔍 Check Submission Limit
     runs-on: ubuntu-latest
     # Skip bot PRs
     if: "!contains(github.event.pull_request.user.login, '[bot]')"
 
     steps:
-      - name: 🔍 Check user's recent activity
+      - name: 🔍 Check User Activity
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
           REPO="${{ github.repository }}"
 
-          echo "Checking recent PRs from @$USERNAME..."
+          echo "🔍 Checking recent PRs from @$USERNAME..."
 
           # Get PRs from this user in last 24 hours
           RECENT_PRS=$(gh pr list --repo $REPO --author $USERNAME --state all --limit 100 --json createdAt,number | \
             jq '[.[] | select(.createdAt >= (now - 86400 | strftime("%Y-%m-%dT%H:%M:%SZ")))] | length')
 
-          echo "Recent PRs (24h): $RECENT_PRS"
+          echo "📊 Recent PRs (24h): $RECENT_PRS"
 
           # Rate limit: Max 3 PRs per day
           if [ "$RECENT_PRS" -gt 3 ]; then
-            echo "❌ RATE LIMIT: User has opened $RECENT_PRS PRs in last 24 hours"
-            echo "Maximum: 3 PRs per day"
-            echo ""
-            echo "This is to prevent spam and abuse."
-            echo "Please wait 24 hours before submitting another message."
+            echo "❌ RATE LIMIT EXCEEDED"
             
             # Comment on PR
-            gh pr comment ${{ github.event.pull_request.number }} --body "## ⚠️ Rate Limit Exceeded
+            gh pr comment ${{ github.event.pull_request.number }} --body "# ⚠️ Rate Limit Exceeded
 
-          **You've opened too many PRs recently (\$RECENT_PRS in last 24 hours).**
+            <div align=\"center\">
 
-          **Limit:** 3 PRs per day per user
+            ![Rate Limit](https://img.shields.io/badge/⛔-Rate_Limit-red?style=for-the-badge&labelColor=1a1a2e)
 
-          **Why?** To prevent spam and ensure fair usage for everyone.
+            </div>
 
-          **What to do:**
-          - Wait 24 hours before submitting another message
-          - You can only seal ONE message per user anyway
-          - If you need help, open an issue instead
+            ---
 
-          This PR will be closed automatically."
+            ## 📊 Your Activity
+
+            | Metric | Value |
+            |:-------|:------|
+            | 📨 **PRs in 24h** | **$RECENT_PRS** |
+            | 🚫 **Limit** | 3 PRs/day |
+
+            ---
+
+            ## ❓ Why This Limit?
+
+            - 🛡️ Prevents spam and abuse
+            - ⚖️ Ensures fair usage for everyone
+            - 📦 You can only seal ONE message anyway!
+
+            ---
+
+            ## 🛠️ What To Do
+
+            1. ⏰ Wait **24 hours** before trying again
+            2. 💡 If you need help, [open an issue](../../issues/new) instead
+
+            ---
+
+            <sub>🤖 This PR will be closed automatically</sub>"
             
             # Close PR
-            gh pr close ${{ github.event.pull_request.number }} --comment "Closed due to rate limit"
+            gh pr close ${{ github.event.pull_request.number }} --comment "🚫 Closed due to rate limit"
             
             exit 1
           fi
 
-          echo "✅ Rate limit check passed"
+          echo "✅ Rate limit check passed ($RECENT_PRS/3 PRs used)"

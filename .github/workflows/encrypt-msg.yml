@@ -1,4 +1,4 @@
-name: Encrypt Message
+name: 🔐 Seal Time Capsule Message
 
 on:
   pull_request_target:
@@ -12,9 +12,10 @@ permissions:
   pull-requests: write
 
 jobs:
-  encrypt:
+  seal:
+    name: 🔒 Encrypt & Seal
     runs-on: ubuntu-latest
-    # Skip bot PRs (Dependabot, Vercel, GitHub Actions, etc.)
+    # Skip bot PRs
     if: |
       github.event.pull_request.user.login != 'dependabot[bot]' &&
       github.event.pull_request.user.login != 'vercel[bot]' &&
@@ -22,34 +23,35 @@ jobs:
       !contains(github.event.pull_request.user.login, '[bot]')
 
     steps:
-      - name: Comment Processing
+      # ═══════════════════════════════════════════════════════════════════
+      # 📋 STEP 1: Comment "Processing..."
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 💬 Comment - Processing
         uses: actions/github-script@v7
         with:
           script: |
-            const body = `## 🔄 Processing Your Time Capsule Message
+            const body = `# 🔄 Processing Your Time Capsule Message
 
             <div align="center">
 
-            ![Status](https://img.shields.io/badge/Status-Processing-yellow?style=for-the-badge)
+            ![Processing](https://img.shields.io/badge/⏳-Processing-orange?style=for-the-badge&labelColor=1a1a2e)
 
             </div>
 
             ---
 
-            ### 📋 What's Happening:
-
             | Step | Status | Description |
-            |------|--------|-------------|
-            | 🔍 | ⏳ **In Progress** | Validating submission |
-            | 🔐 | ⏳ **Queued** | Encrypting with GPG |
-            | 💾 | ⏳ **Queued** | Saving to vault |
-            | ✅ | ⏳ **Queued** | Finalizing |
+            |:----:|:------:|:------------|
+            | 🔍 | ⏳ **Validating...** | Checking your submission |
+            | 🔐 | ⏸️ Queued | Encrypting with GPG |
+            | 💾 | ⏸️ Queued | Saving to vault |
+            | ✅ | ⏸️ Queued | Finalizing |
+
+            > ⏱️ **Please wait...** This usually takes 10-30 seconds.
 
             ---
 
-            > ⏰ **Please wait...** This usually takes 10-20 seconds.
-
-            *🤖 Automated by GitHub Actions*`;
+            <sub>🤖 Automated by GitHub Actions</sub>`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -58,31 +60,34 @@ jobs:
               body: body
             });
 
-      # Checkout PR head (user's submission)
-      - name: Checkout PR
+      # ═══════════════════════════════════════════════════════════════════
+      # 📥 STEP 2: Checkout PR content
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 📥 Checkout PR
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: pr-content
 
-      - name: Extract username
+      - name: 👤 Extract username
         id: user
-        run: |
-          echo "username=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
+        run: echo "username=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
 
-      - name: Check submission and encrypt
+      # ═══════════════════════════════════════════════════════════════════
+      # 🔐 STEP 3: Find and encrypt message
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 🔐 Process & Encrypt
         id: process
         env:
           GPG_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
         run: |
           USERNAME="${{ steps.user.outputs.username }}"
 
-          # Check for message file (supports username.txt or username-N.txt pattern)
+          # Find message file (supports username.txt or username-*.txt)
           MESSAGE_FILE=""
           if [ -f "pr-content/messages/${USERNAME}.txt" ]; then
             MESSAGE_FILE="pr-content/messages/${USERNAME}.txt"
           else
-            # Look for username-*.txt pattern
             for f in pr-content/messages/${USERNAME}-*.txt; do
               if [ -f "$f" ]; then
                 MESSAGE_FILE="$f"
@@ -98,18 +103,19 @@ jobs:
             # Setup GPG
             echo "$GPG_KEY" | gpg --import
             
-            # Encrypt
+            # Encrypt to temp folder
             mkdir -p /tmp/sealed-output
-            TS=$(date +%Y%m%d-%H%M%S)
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
             
             gpg --encrypt \
                 --recipient "time-capsule-2035" \
                 --armor \
                 --trust-model always \
-                --output "/tmp/sealed-output/${USERNAME}-${TS}.gpg" \
+                --output "/tmp/sealed-output/${USERNAME}-${TIMESTAMP}.gpg" \
                 "$MESSAGE_FILE"
             
             echo "sealed_folder=/tmp/sealed-output" >> $GITHUB_OUTPUT
+            echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -125,25 +131,22 @@ jobs:
           echo "❌ No valid message found"
           exit 1
 
-      # Checkout main repo for committing
-      - name: Checkout Main
+      # ═══════════════════════════════════════════════════════════════════
+      # 💾 STEP 4: Commit directly to main (SINGLE COMMIT)
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 📥 Checkout Main
         uses: actions/checkout@v4
         with:
           ref: main
           path: main-repo
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Internal Branch and Commit
-        id: internal
+      - name: 💾 Commit to Main
         working-directory: main-repo
         run: |
           USERNAME="${{ steps.user.outputs.username }}"
-          BRANCH_NAME="sealed-${USERNAME}-$(date +%s)"
 
-          # Create new branch
-          git checkout -b "$BRANCH_NAME"
-
-          # Copy sealed files from temp folder
+          # Copy sealed files
           mkdir -p "sealed/${USERNAME}"
           cp -r ${{ steps.process.outputs.sealed_folder }}/* "sealed/${USERNAME}/"
 
@@ -151,79 +154,63 @@ jobs:
           git config user.name "Time Capsule Bot"
           git config user.email "bot@github-time-capsule.local"
 
-          # Commit
+          # Commit and push directly to main
           git add sealed/
           git commit -m "🔐 Sealed message from @${USERNAME}"
-
-          # Push internal branch
-          git push origin "$BRANCH_NAME"
-
-          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-      - name: Merge Internal Branch to Main
-        working-directory: main-repo
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BRANCH_NAME="${{ steps.internal.outputs.branch }}"
-
-          # Merge directly
-          git checkout main
-          git pull origin main
-          git merge "$BRANCH_NAME" --no-ff -m "Merge sealed message from @${{ steps.user.outputs.username }}"
           git push origin main
 
-          # Delete internal branch
-          git push origin --delete "$BRANCH_NAME"
-
-      - name: Success Comment
+      # ═══════════════════════════════════════════════════════════════════
+      # ✅ STEP 5: Success comment
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 💬 Comment - Success
         uses: actions/github-script@v7
         with:
           script: |
             const user = '${{ steps.user.outputs.username }}';
             const type = '${{ steps.process.outputs.type }}';
-
             const encryptionMethod = type === 'plaintext' 
-              ? '🔐 **Encrypted with GPG** (AES-256 + RSA-4096)' 
-              : '🔒 **Pre-encrypted** (Client-side encryption)';
+              ? '🔐 GPG (AES-256 + RSA-4096)' 
+              : '🔒 Client-side Encryption';
 
-            const message = `## 🎉 Success! Your Message is Sealed! 🕰️
+            const message = `# 🎉 Message Sealed Successfully!
 
             <div align="center">
 
-            ![Status](https://img.shields.io/badge/Status-✅_Sealed-success?style=for-the-badge)
-            ![Unlock Date](https://img.shields.io/badge/Unlocks-January_1,_2035-blue?style=for-the-badge)
+            ![Success](https://img.shields.io/badge/✅-Sealed-success?style=for-the-badge&labelColor=1a1a2e)
+            ![Unlock](https://img.shields.io/badge/🔓-January_1,_2035-blue?style=for-the-badge&labelColor=1a1a2e)
 
             </div>
 
             ---
 
-            ### 👤 Message Details:
+            ## � Details
 
-            | Item | Details |
-            |------|---------|
-            | **Submitter** | @${user} |
-            | **Sealed At** | \`${new Date().toUTCString()}\` |
-            | **Storage** | \`sealed/${user}/\` |
-            | **Security** | ${encryptionMethod} |
-            | **Unlock Date** | **January 1, 2035** 🗓️ |
-
-            ---
-
-            ### ✅ All Steps Completed:
-
-            - ✅ **Validated** - Submission verified
-            - ✅ **Encrypted** - Message secured with military-grade encryption
-            - ✅ **Stored** - Saved in the time capsule vault
-            - ✅ **Sealed** - Locked until 2035!
+            | Item | Value |
+            |:-----|:------|
+            | 👤 **Submitter** | @${user} |
+            | 🔐 **Encryption** | ${encryptionMethod} |
+            | 📁 **Location** | \`sealed/${user}/\` |
+            | 📅 **Sealed At** | \`${new Date().toUTCString()}\` |
+            | 🔓 **Unlocks** | **January 1, 2035** |
 
             ---
 
-            ### 📬 How to Receive Your Message in 2035:
+            ## ✅ Completed Steps
 
-            1. ⭐ **[Star this repository](../../stargazers)** to get notified
-            2. 👁️ **Watch → All Activity** to receive updates
-            3. 🔔 You'll get an email on **January 1, 2035** when it unlocks!
+            | Step | Status |
+            |:-----|:-------|
+            | 🔍 Validate | ✅ Passed |
+            | 🔐 Encrypt | ✅ Done |
+            | 💾 Store | ✅ Saved |
+            | 🔒 Seal | ✅ Locked |
+
+            ---
+
+            ## 📬 Get Notified in 2035
+
+            1. ⭐ **[Star this repo](../../stargazers)** to get updates
+            2. 👁️ **Watch → All Activity** for notifications
+            3. 🔔 You'll receive an email when it unlocks!
 
             ---
 
@@ -237,9 +224,7 @@ jobs:
 
             ---
 
-            ![Time Capsule](https://img.shields.io/badge/⏰-GitHub_Time_Capsule-purple?style=flat-square)
-
-            🤖 *Automated by GitHub Actions*
+            ![Time Capsule](https://img.shields.io/badge/🕰️-GitHub_Time_Capsule-purple?style=flat-square)
 
             </div>`;
 
@@ -250,33 +235,45 @@ jobs:
               body: message
             });
 
-      - name: Failure Comment
+      # ═══════════════════════════════════════════════════════════════════
+      # ❌ STEP 6: Failure comment (only runs on failure)
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 💬 Comment - Failure
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
-            const body = `## ❌ Submission Failed
+            const body = `# ❌ Submission Failed
 
             <div align="center">
 
-            ![Status](https://img.shields.io/badge/Status-Failed-red?style=for-the-badge)
+            ![Failed](https://img.shields.io/badge/❌-Failed-red?style=for-the-badge&labelColor=1a1a2e)
 
             </div>
 
             ---
 
-            ### ⚠️ What went wrong?
+            ## ⚠️ What Went Wrong?
 
-            The automated system could not process your message. This usually happens because:
-            1. **Invalid Format:** The message file was not found or named correctly.
-            2. **Duplicate:** You may have already submitted a message (check \`sealed/\` folder).
-            3. **System Error:** A temporary issue with the encryption process.
+            The system could not process your message. Possible reasons:
 
-            ### 🛠️ How to fix:
-            - If you used the **Web App**: Please try again in a few minutes.
-            - If you submitted **Manually**: Ensure you created a file in \`messages/\` folder.
+            | Issue | Description |
+            |:------|:------------|
+            | 📄 **File Not Found** | No valid file in \`messages/\` folder |
+            | 🔄 **Duplicate** | You may have already submitted |
+            | ⚙️ **System Error** | Temporary encryption issue |
 
-            *The PR will be closed automatically to keep the repository clean.*`;
+            ---
+
+            ## 🛠️ How to Fix
+
+            - **Web App Users:** Try again in a few minutes
+            - **Manual Users:** Ensure file is in \`messages/yourusername.txt\`
+            - **Fork Issues:** [Sync your fork](../../network) with upstream
+
+            ---
+
+            <sub>🤖 This PR will be closed automatically</sub>`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -285,7 +282,10 @@ jobs:
               body: body
             });
 
-      - name: Close PR
+      # ═══════════════════════════════════════════════════════════════════
+      # 🚪 STEP 7: Close PR (always runs)
+      # ═══════════════════════════════════════════════════════════════════
+      - name: 🚪 Close PR
         if: always()
         uses: actions/github-script@v7
         with:
