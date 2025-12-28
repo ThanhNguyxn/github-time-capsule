@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
     // Step 4: Save the obfuscated message in the messages folder
     // This prevents the message from being visible in PR diff
     // The workflow will deobfuscate, encrypt with GPG, and move to sealed/ folder
-    const messageFileName = `messages/${session.user.username}.txt`;
+    const timestamp = Date.now();
+    const messageFileName = `messages/${session.user.username}-${timestamp}.txt`;
     await octokit.repos.createOrUpdateFileContents({
       owner: userRepoOwner,
       repo,
