@@ -196,11 +196,11 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 
 | 📈 Metric | Count |
 |-----------|-------|
-| 🔒 **Messages Sealed** | ![Messages Sealed](https://img.shields.io/badge/Messages-2-blue?style=flat-square) |
+| 🔒 **Messages Sealed** | ![Messages Sealed](https://img.shields.io/badge/Messages-3-blue?style=flat-square) |
 | 👥 **Contributors** | [![Contributors](https://img.shields.io/github/contributors/ThanhNguyxn/github-time-capsule?style=flat-square)](../../graphs/contributors) |
 | ⭐ **Stars** | [![Stars](https://img.shields.io/github/stars/ThanhNguyxn/github-time-capsule?style=flat-square)](../../stargazers) |
 | 🔀 **Forks** | [![Forks](https://img.shields.io/github/forks/ThanhNguyxn/github-time-capsule?style=flat-square)](../../network/members) |
-| ⏰ **Days Until 2035** | ![Days Until 2035](https://img.shields.io/badge/Countdown-3292%20days-orange?style=flat-square) |
+| ⏰ **Days Until 2035** | ![Days Until 2035](https://img.shields.io/badge/Countdown-3291%20days-orange?style=flat-square) |
 
 > 🤖 **Auto-updated daily** by GitHub Actions | Last update: Every day at 00:00 UTC
 
@@ -377,10 +377,9 @@ Only before it gets locked (within 30 seconds). After that, it's part of history
 </details>
 
 <details>
-<summary><b>📬 How do I read my message in 2035?</b></summary>
+📖 **[Read Full Guide: How to Access Your Message in 2035](./HOW-TO-READ-2035.md)**
 
-
----
+</details>
 
 <br>
 
@@ -406,9 +405,8 @@ Want to know how this works technically? Check out our detailed docs:
 - 📚 API reference
 
 **Quick Links:**
-- 🧪 **[Testing Guide](TESTING.md)** - How to test workflows and cleanup
+- 🧪 **[Testing Guide](TESTING.md)** - How to test workflows
 - 🛠️ **[Developer Docs](FOR-DEVELOPERS.md)** - Technical documentation
-- 🧹 **Cleanup Scripts** - `./cleanup-tests.sh` (Linux/Mac) or `.\cleanup-tests.ps1` (Windows)
 
 <br>
 

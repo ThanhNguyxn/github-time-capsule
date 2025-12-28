@@ -1,8 +1,11 @@
 name: Encrypt Message
 
 on:
-  pull_request:
-    types: [opened]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "messages/**"
+      - "sealed/**"
 
 permissions:
   contents: write
@@ -11,165 +14,192 @@ permissions:
 jobs:
   encrypt:
     runs-on: ubuntu-latest
-      
+    # Skip bot PRs (Dependabot, Vercel, GitHub Actions, etc.)
+    if: |
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.event.pull_request.user.login != 'vercel[bot]' &&
+      github.event.pull_request.user.login != 'github-actions[bot]' &&
+      !contains(github.event.pull_request.user.login, '[bot]')
+
     steps:
-      - name: Comment Step 1
+      - name: Comment Processing
         uses: actions/github-script@v7
         with:
           script: |
             const body = `## 🔄 Processing Your Time Capsule Message
-            
+
             <div align="center">
-            
+
             ![Status](https://img.shields.io/badge/Status-Processing-yellow?style=for-the-badge)
-            
+
             </div>
-            
+
             ---
-            
+
             ### 📋 What's Happening:
-            
+
             | Step | Status | Description |
             |------|--------|-------------|
             | 🔍 | ⏳ **In Progress** | Validating submission |
             | 🔐 | ⏳ **Queued** | Encrypting with GPG |
             | 💾 | ⏳ **Queued** | Saving to vault |
             | ✅ | ⏳ **Queued** | Finalizing |
-            
+
             ---
-            
+
             > ⏰ **Please wait...** This usually takes 10-20 seconds.
-            
+
             *🤖 Automated by GitHub Actions*`;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: body
             });
-      
-      - name: Checkout
+
+      # Checkout PR head (user's submission)
+      - name: Checkout PR
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      
+          path: pr-content
+
       - name: Extract username
         id: user
         run: |
           echo "username=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
-      
-      - name: Check submission type
-        id: check
-        run: |
-          USERNAME="${{ steps.user.outputs.username }}"
-          
-          # Check if message file exists (manual submission)
-          if [ -f "messages/${USERNAME}.txt" ]; then
-            echo "type=plaintext" >> $GITHUB_OUTPUT
-            echo "✅ Found plaintext message - will encrypt with GPG"
-            exit 0
-          fi
-          
-          # Check if sealed file exists (web interface submission)
-          if [ -f "sealed/${USERNAME}/${USERNAME}.gpg" ] || [ -d "sealed/${USERNAME}" ]; then
-            echo "type=sealed" >> $GITHUB_OUTPUT
-            echo "✅ Found encrypted message - will commit to main"
-            exit 0
-          fi
-          
-          # No valid submission found
-          echo "❌ Error: No message file found"
-          echo "Expected either:"
-          echo "  - messages/${USERNAME}.txt (plaintext), or"
-          echo "  - sealed/${USERNAME}/*.gpg (encrypted)"
-          exit 1
-      
-      - name: Setup GPG
-        if: steps.check.outputs.type == 'plaintext'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y gnupg
-      
-      - name: Import GPG
-        if: steps.check.outputs.type == 'plaintext'
+
+      - name: Check submission and encrypt
+        id: process
         env:
-          KEY: ${{ secrets.GPG_PUBLIC_KEY }}
-        run: |
-          echo "$KEY" | gpg --import
-      
-      - name: Encrypt
-        if: steps.check.outputs.type == 'plaintext'
+          GPG_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
         run: |
           USERNAME="${{ steps.user.outputs.username }}"
-          mkdir -p "sealed/${USERNAME}"
-          TS=$(date +%Y%m%d-%H%M%S)
-          
-          gpg --encrypt \
-              --recipient "time-capsule-2035" \
-              --armor \
-              --trust-model always \
-              --output "sealed/${USERNAME}/${USERNAME}-${TS}.gpg" \
-              "messages/${USERNAME}.txt"
-          
-          cp -r sealed /tmp/sealed-backup
-      
-      - name: Copy sealed files (web interface)
-        if: steps.check.outputs.type == 'sealed'
-        run: |
-          USERNAME="${{ steps.user.outputs.username }}"
-          # Copy sealed files from PR branch
-          cp -r sealed /tmp/sealed-backup
-      
-      - name: Checkout main
+
+          # Check for message file (supports username.txt or username-N.txt pattern)
+          MESSAGE_FILE=""
+          if [ -f "pr-content/messages/${USERNAME}.txt" ]; then
+            MESSAGE_FILE="pr-content/messages/${USERNAME}.txt"
+          else
+            # Look for username-*.txt pattern
+            for f in pr-content/messages/${USERNAME}-*.txt; do
+              if [ -f "$f" ]; then
+                MESSAGE_FILE="$f"
+                break
+              fi
+            done
+          fi
+
+          if [ -n "$MESSAGE_FILE" ]; then
+            echo "type=plaintext" >> $GITHUB_OUTPUT
+            echo "✅ Found message: $MESSAGE_FILE"
+            
+            # Setup GPG
+            echo "$GPG_KEY" | gpg --import
+            
+            # Encrypt
+            mkdir -p /tmp/sealed-output
+            TS=$(date +%Y%m%d-%H%M%S)
+            
+            gpg --encrypt \
+                --recipient "time-capsule-2035" \
+                --armor \
+                --trust-model always \
+                --output "/tmp/sealed-output/${USERNAME}-${TS}.gpg" \
+                "$MESSAGE_FILE"
+            
+            echo "sealed_folder=/tmp/sealed-output" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for pre-sealed files
+          if [ -d "pr-content/sealed/${USERNAME}" ]; then
+            echo "type=sealed" >> $GITHUB_OUTPUT
+            echo "✅ Found pre-sealed message"
+            cp -r "pr-content/sealed/${USERNAME}" /tmp/sealed-backup
+            echo "sealed_folder=/tmp/sealed-backup" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "❌ No valid message found"
+          exit 1
+
+      # Checkout main repo for committing
+      - name: Checkout Main
         uses: actions/checkout@v4
         with:
           ref: main
-      
-      - name: Restore
+          path: main-repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Internal Branch and Commit
+        id: internal
+        working-directory: main-repo
         run: |
           USERNAME="${{ steps.user.outputs.username }}"
+          BRANCH_NAME="sealed-${USERNAME}-$(date +%s)"
+
+          # Create new branch
+          git checkout -b "$BRANCH_NAME"
+
+          # Copy sealed files from temp folder
           mkdir -p "sealed/${USERNAME}"
-          cp -r /tmp/sealed-backup/${USERNAME}/* "sealed/${USERNAME}/"
-      
-      - name: Commit
-        run: |
-          USERNAME="${{ steps.user.outputs.username }}"
-          git config user.name "Bot"
-          git config user.email "bot@local"
+          cp -r ${{ steps.process.outputs.sealed_folder }}/* "sealed/${USERNAME}/"
+
+          # Configure git
+          git config user.name "Time Capsule Bot"
+          git config user.email "bot@github-time-capsule.local"
+
+          # Commit
           git add sealed/
-          
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Sealed @${USERNAME}"
-            git push origin main
-          fi
-      
-      - name: Success
+          git commit -m "🔐 Sealed message from @${USERNAME}"
+
+          # Push internal branch
+          git push origin "$BRANCH_NAME"
+
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Merge Internal Branch to Main
+        working-directory: main-repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="${{ steps.internal.outputs.branch }}"
+
+          # Merge directly
+          git checkout main
+          git pull origin main
+          git merge "$BRANCH_NAME" --no-ff -m "Merge sealed message from @${{ steps.user.outputs.username }}"
+          git push origin main
+
+          # Delete internal branch
+          git push origin --delete "$BRANCH_NAME"
+
+      - name: Success Comment
         uses: actions/github-script@v7
         with:
           script: |
             const user = '${{ steps.user.outputs.username }}';
-            const type = '${{ steps.check.outputs.type }}';
-            
+            const type = '${{ steps.process.outputs.type }}';
+
             const encryptionMethod = type === 'plaintext' 
               ? '🔐 **Encrypted with GPG** (AES-256 + RSA-4096)' 
               : '🔒 **Pre-encrypted** (Client-side encryption)';
-            
+
             const message = `## 🎉 Success! Your Message is Sealed! 🕰️
-            
+
             <div align="center">
-            
+
             ![Status](https://img.shields.io/badge/Status-✅_Sealed-success?style=for-the-badge)
             ![Unlock Date](https://img.shields.io/badge/Unlocks-January_1,_2035-blue?style=for-the-badge)
-            
+
             </div>
-            
+
             ---
-            
+
             ### 👤 Message Details:
-            
+
             | Item | Details |
             |------|---------|
             | **Submitter** | @${user} |
@@ -177,50 +207,50 @@ jobs:
             | **Storage** | \`sealed/${user}/\` |
             | **Security** | ${encryptionMethod} |
             | **Unlock Date** | **January 1, 2035** 🗓️ |
-            
+
             ---
-            
+
             ### ✅ All Steps Completed:
-            
+
             - ✅ **Validated** - Submission verified
             - ✅ **Encrypted** - Message secured with military-grade encryption
             - ✅ **Stored** - Saved in the time capsule vault
             - ✅ **Sealed** - Locked until 2035!
-            
+
             ---
-            
+
             ### 📬 How to Receive Your Message in 2035:
-            
+
             1. ⭐ **[Star this repository](../../stargazers)** to get notified
             2. 👁️ **Watch → All Activity** to receive updates
             3. 🔔 You'll get an email on **January 1, 2035** when it unlocks!
-            
+
             ---
-            
+
             <div align="center">
-            
+
             ### 🎊 Thank You for Participating! 🎊
-            
+
             *Your message from ${new Date().getFullYear()} is now part of history.*
-            
+
             **See you in 2035!** 🚀
-            
+
             ---
-            
+
             ![Time Capsule](https://img.shields.io/badge/⏰-GitHub_Time_Capsule-purple?style=flat-square)
-            
+
             🤖 *Automated by GitHub Actions*
-            
+
             </div>`;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: message
             });
-      
-      - name: Close
+
+      - name: Close PR
         if: always()
         uses: actions/github-script@v7
         with:

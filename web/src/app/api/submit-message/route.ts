@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     // Get session
     const session = await getServerSession(authOptions) as any;
-    
+
     if (!session || !session.user || !session.accessToken) {
       return NextResponse.json(
         { error: 'Unauthorized - Please sign in' },
@@ -28,11 +28,11 @@ export async function POST(request: NextRequest) {
 
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: `Rate limit exceeded. Try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)} seconds.`,
-          retryAfter: rateLimitResult.reset 
+          retryAfter: rateLimitResult.reset
         },
-        { 
+        {
           status: 429,
           headers: {
             ...securityHeaders,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Determine repo location based on user
     let userRepoOwner: string;
-    
+
     if (isRepoOwner) {
       // Repo owner can't fork their own repo - use main repo
       userRepoOwner = owner;
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
             owner,
             repo,
           });
-          
+
           // Wait a bit for fork to be created
           await new Promise(resolve => setTimeout(resolve, 3000));
           console.log('Fork created successfully');
@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
     // Step 4: Save the obfuscated message in the messages folder
     // This prevents the message from being visible in PR diff
     // The workflow will deobfuscate, encrypt with GPG, and move to sealed/ folder
-    const messageFileName = `messages/${session.user.username}.txt`;
+    const timestamp = Date.now();
+    const messageFileName = `messages/${session.user.username}-${timestamp}.txt`;
     await octokit.repos.createOrUpdateFileContents({
       owner: userRepoOwner,
       repo,
@@ -147,10 +148,10 @@ export async function POST(request: NextRequest) {
 
     // Step 5: Create pull request
     // Format depends on whether it's same-repo or fork PR
-    const prHead = isRepoOwner 
+    const prHead = isRepoOwner
       ? branchName  // Same-repo format (triggers pull_request)
       : `${userRepoOwner}:${branchName}`;  // Fork format (triggers pull_request_target)
-    
+
     const { data: prData } = await octokit.pulls.create({
       owner,
       repo,

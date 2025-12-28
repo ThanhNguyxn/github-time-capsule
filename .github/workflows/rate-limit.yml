@@ -3,13 +3,19 @@ name: Rate Limit Check
 on:
   pull_request_target:
     types: [opened]
+    paths:
+      - "messages/**"
   pull_request:
     types: [opened]
+    paths:
+      - "messages/**"
 
 jobs:
   check-rate-limit:
     runs-on: ubuntu-latest
-    
+    # Skip bot PRs
+    if: "!contains(github.event.pull_request.user.login, '[bot]')"
+
     steps:
       - name: 🔍 Check user's recent activity
         env:
@@ -17,15 +23,15 @@ jobs:
         run: |
           USERNAME="${{ github.event.pull_request.user.login }}"
           REPO="${{ github.repository }}"
-          
+
           echo "Checking recent PRs from @$USERNAME..."
-          
+
           # Get PRs from this user in last 24 hours
           RECENT_PRS=$(gh pr list --repo $REPO --author $USERNAME --state all --limit 100 --json createdAt,number | \
             jq '[.[] | select(.createdAt >= (now - 86400 | strftime("%Y-%m-%dT%H:%M:%SZ")))] | length')
-          
+
           echo "Recent PRs (24h): $RECENT_PRS"
-          
+
           # Rate limit: Max 3 PRs per day
           if [ "$RECENT_PRS" -gt 3 ]; then
             echo "❌ RATE LIMIT: User has opened $RECENT_PRS PRs in last 24 hours"
@@ -37,23 +43,23 @@ jobs:
             # Comment on PR
             gh pr comment ${{ github.event.pull_request.number }} --body "## ⚠️ Rate Limit Exceeded
 
-**You've opened too many PRs recently ($RECENT_PRS in last 24 hours).**
+          **You've opened too many PRs recently (\$RECENT_PRS in last 24 hours).**
 
-**Limit:** 3 PRs per day per user
+          **Limit:** 3 PRs per day per user
 
-**Why?** To prevent spam and ensure fair usage for everyone.
+          **Why?** To prevent spam and ensure fair usage for everyone.
 
-**What to do:**
-- Wait 24 hours before submitting another message
-- You can only seal ONE message per user anyway
-- If you need help, open an issue instead
+          **What to do:**
+          - Wait 24 hours before submitting another message
+          - You can only seal ONE message per user anyway
+          - If you need help, open an issue instead
 
-This PR will be closed automatically."
+          This PR will be closed automatically."
             
             # Close PR
-            gh pr close ${{ github.event.pull_request.number }} --comment "🚫 Closed due to rate limit"
+            gh pr close ${{ github.event.pull_request.number }} --comment "Closed due to rate limit"
             
             exit 1
           fi
-          
+
           echo "✅ Rate limit check passed"

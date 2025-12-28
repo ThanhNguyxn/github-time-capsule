@@ -3,13 +3,13 @@ name: 📊 Update Statistics
 on:
   schedule:
     # Runs every day at 00:00 UTC
-    - cron: '0 0 * * *'
-  
+    - cron: "0 0 * * *"
+
   # Also run when a new message is sealed
   push:
     paths:
-      - 'sealed/*.gpg'
-  
+      - "sealed/**/*.gpg"
+
   # Manual trigger
   workflow_dispatch:
 
@@ -19,7 +19,7 @@ permissions:
 jobs:
   update-stats:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -38,10 +38,10 @@ jobs:
           # Calculate days until January 1, 2035
           TARGET_DATE="2035-01-01"
           CURRENT_DATE=$(date +%Y-%m-%d)
-          
+
           # Calculate difference in days
           DAYS_UNTIL=$(( ($(date -d "$TARGET_DATE" +%s) - $(date -d "$CURRENT_DATE" +%s)) / 86400 ))
-          
+
           echo "DAYS_UNTIL=$DAYS_UNTIL" >> $GITHUB_OUTPUT
           echo "✅ Days until 2035: $DAYS_UNTIL"
 
@@ -49,15 +49,15 @@ jobs:
         run: |
           MESSAGE_COUNT="${{ steps.count.outputs.MESSAGE_COUNT }}"
           DAYS_UNTIL="${{ steps.days.outputs.DAYS_UNTIL }}"
-          
+
           # Update Messages Sealed badge (handle both URL-encoded and plain formats)
           sed -i "s/Messages-Coming%20Soon-blue/Messages-${MESSAGE_COUNT}-blue/g" README.md
           sed -i "s/Messages-[0-9]*-blue/Messages-${MESSAGE_COUNT}-blue/g" README.md
-          
+
           # Update Days Until 2035 badge (handle both URL-encoded and plain formats)
           sed -i "s/Countdown-[0-9]*%20days-orange/Countdown-${DAYS_UNTIL}%20days-orange/g" README.md
           sed -i "s/Countdown-[0-9]*-orange/Countdown-${DAYS_UNTIL}-orange/g" README.md
-          
+
           echo "✅ Updated README.md with new statistics"
           echo "   - Messages Sealed: $MESSAGE_COUNT"
           echo "   - Days Until 2035: $DAYS_UNTIL"
