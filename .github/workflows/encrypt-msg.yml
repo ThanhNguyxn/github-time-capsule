@@ -250,6 +250,41 @@ jobs:
               body: message
             });
 
+      - name: Failure Comment
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## ❌ Submission Failed
+
+            <div align="center">
+
+            ![Status](https://img.shields.io/badge/Status-Failed-red?style=for-the-badge)
+
+            </div>
+
+            ---
+
+            ### ⚠️ What went wrong?
+
+            The automated system could not process your message. This usually happens because:
+            1. **Invalid Format:** The message file was not found or named correctly.
+            2. **Duplicate:** You may have already submitted a message (check \`sealed/\` folder).
+            3. **System Error:** A temporary issue with the encryption process.
+
+            ### 🛠️ How to fix:
+            - If you used the **Web App**: Please try again in a few minutes.
+            - If you submitted **Manually**: Ensure you created a file in \`messages/\` folder.
+
+            *The PR will be closed automatically to keep the repository clean.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
       - name: Close PR
         if: always()
         uses: actions/github-script@v7
